@@ -1,16 +1,11 @@
-# capstone
-npm install
 
-npm install react-kakao-maps-sdk
+  # 모바일 관광 앱 구축
 
-server에서 npm run dev
+  This is a code bundle for 모바일 관광 앱 구축. The original project is available at https://www.figma.com/design/wXRteTFSuxMaA2KsgaL7hP/%EB%AA%A8%EB%B0%94%EC%9D%BC-%EA%B4%80%EA%B4%91-%EC%95%B1-%EA%B5%AC%EC%B6%95.
 
-root에서 npm run dev
+  ## Running the code
 
-터미널 두개로 각각 실행
+  Run `npm i` to install the dependencies.
 
-실행할떄 db_p에서 프로시저 미리 실행, mysql에서 아이디 root 비밀번호 1234 고정
-
-카카오맵 작동안할시 윤준희에게
-
-#새로운 커밋발생 시 깃허브에 이슈 등록하기
+  Run `npm run dev` to start the development server.
+  
