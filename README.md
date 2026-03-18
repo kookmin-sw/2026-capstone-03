@@ -1,5 +1,6 @@
 # capstone
 npm install
+
 npm install react-kakao-maps-sdk
 
 server에서 npm run dev
