@@ -1,11 +1,11 @@
+#실행방법
 
-  # 모바일 관광 앱 구축
+npm install
 
-  This is a code bundle for 모바일 관광 앱 구축. The original project is available at https://www.figma.com/design/wXRteTFSuxMaA2KsgaL7hP/%EB%AA%A8%EB%B0%94%EC%9D%BC-%EA%B4%80%EA%B4%91-%EC%95%B1-%EA%B5%AC%EC%B6%95.
+npm install react-kakao-maps-sdk
 
-  ## Running the code
+server, root 터미널 두개에서 npm run dev
 
-  Run `npm i` to install the dependencies.
+실시간 카메라 실행방법
 
-  Run `npm run dev` to start the development server.
-  
+main.py 실행 (웹캠 카메라 설정 (0,1,2) 후 실행)
