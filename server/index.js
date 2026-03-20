@@ -75,8 +75,8 @@ app.post('/api/auth/kakao', async (req, res) => {
     const tokenResponse = await axios.post('https://kauth.kakao.com/oauth/token', null, {
       params: {
         grant_type: 'authorization_code',
-        client_id: process.env.KAKAO_REST_API_KEY,
-        redirect_uri: process.env.KAKAO_REDIRECT_URI,
+        client_id: 'f03731266c0fae4f844f404a0ffc1e10',
+        redirect_uri: 'http://localhost:5173/kakaologin',
         code: code,
       },
       headers: { 'Content-type': 'application/x-www-form-urlencoded;charset=utf-8' },
