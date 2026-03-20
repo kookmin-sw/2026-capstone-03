@@ -1,8 +1,9 @@
 #실행방법
 
-<h1>server에 .env 추가 필요</h1> 
+<h1>사이트 실행</h1> 
 <br>
 <p>
+  server에 .env 추가 필요
   npm install
   <br>
   npm install react-kakao-maps-sdk
