@@ -2,6 +2,11 @@ import { useNavigate } from 'react-router';
 import { Stamp, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 
+// kakao 로그인 설정을 위한 수정(apikey는 .env 만들어서 넣는게 나을지도)
+const KAKAO_REST_API_KEY = 'f03731266c0fae4f844f404a0ffc1e10';
+const REDIRECT_URI = 'http://localhost:5173/kakaologin';
+const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_REST_API_KEY}&redirect_uri=${REDIRECT_URI}&response_type=code`;
+
 export function Login() {
   const navigate = useNavigate();
 
@@ -69,14 +74,8 @@ const handleLogin = async (user: { id: string; name: string; email: string; avat
   };
 
   const handleKakaoLogin = () => {
-    // Mock Kakao SSO login
-    const mockUser = {
-      id: 'kakao_3',
-      name: '박지영',
-      email: 'park@kakao.com',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop'
-    };
-    handleLogin(mockUser);
+    // (수정부분) 바로 카카오 로그인 url로 이동
+    window.location.href = KAKAO_AUTH_URL;
   };
 
   return (

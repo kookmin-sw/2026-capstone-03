@@ -1,0 +1,7 @@
+# 의존성 패키지 폴더 무시
+node_modules/
+server/node_modules/
+
+# 환경변수 파일 무시 (API 키 보호)
+.env
+server/.env
