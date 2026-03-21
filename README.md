@@ -11,7 +11,7 @@
 터미널을 열고 아래 명령어들을 실행.
 
 ```bash
-npm install //root와 server 폴더에 두번 다 설치
+npm install
 npm install react-kakao-maps-sdk
 npm install axios
 ```
