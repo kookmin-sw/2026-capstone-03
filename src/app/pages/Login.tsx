@@ -1,81 +1,40 @@
 import { useNavigate } from 'react-router';
 import { Stamp, MapPin } from 'lucide-react';
-import { toast } from 'sonner';
-
-// kakao 로그인 설정을 위한 수정(apikey는 .env 만들어서 넣는게 나을지도)
-const KAKAO_REST_API_KEY = 'f03731266c0fae4f844f404a0ffc1e10';
-const REDIRECT_URI = 'http://localhost:5173/kakaologin';
-const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_REST_API_KEY}&redirect_uri=${REDIRECT_URI}&response_type=code`;
+// import { toast } from 'sonner'; 이제 여기서 통신 안할거라 일단 주석처리
 
 export function Login() {
   const navigate = useNavigate();
 
-// Login.tsx
+  // 현재 접속한 도메인 자동 인식
+  const BASE_URL = window.location.origin;
 
-const handleLogin = async (user: { id: string; name: string; email: string; avatar: string }) => {
-  try {
-    // 🌐 1. 백엔드 서버로 로그인 정보 전송 (API 호출)
-    const response = await fetch('http://localhost:5000/api/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(user), // 유저 정보를 JSON으로 변환해서 보냄
-    });
+  // 카카오 로그인 설정
+  const KAKAO_CLIENT_ID = 'f03731266c0fae4f844f404a0ffc1e10';
+  const KAKAO_REDIRECT_URI = `${BASE_URL}/kakaologin`;
+  const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_CLIENT_ID}&redirect_uri=${KAKAO_REDIRECT_URI}&response_type=code`;
 
-    if (!response.ok) {
-      throw new Error('서버 응답 에러!');
-    }
+  // 네이버 로그인 설정
+  const NAVER_CLIENT_ID = 'OU5On9cK56h1zUDeUaAe';
+  const NAVER_REDIRECT_URI = `${BASE_URL}/naverlogin`;
+  const STATE = Math.random().toString(36).substring(3, 14); // 네이버 해킹 방지용 난수
+  const NAVER_AUTH_URL = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${NAVER_CLIENT_ID}&redirect_uri=${NAVER_REDIRECT_URI}&state=${STATE}`;
 
-    const data = await response.json();
-    console.log('서버로부터 받은 응답:', data);
+  // 구글 로그인 설정
+  const GOOGLE_CLIENT_ID = '147281860929-h7ovf71ou4ggb1jve6coujee7fgkqer1.apps.googleusercontent.com';
+  const GOOGLE_REDIRECT_URI = `${BASE_URL}/googlelogin`;
+  const GOOGLE_AUTH_URL = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${GOOGLE_REDIRECT_URI}&response_type=code&scope=email profile`;
 
-    // 💾 2. 기존처럼 로컬 스토리지에도 저장 (성공 시)
-    localStorage.setItem('user', JSON.stringify({
-      ...user,
-      loginAt: new Date().toISOString()
-    }));
-    
-    toast.success('로그인 성공!', {
-      description: `${user.name}님, 서버 연결도 완료되었습니다!`
-    });
-
-    // 🏠 3. 홈으로 이동
-    navigate('/');
-
-  } catch (error) {
-    console.error('로그인 실패:', error);
-    toast.error('서버 연결 실패', {
-      description: '백엔드 서버가 켜져 있는지 확인해 주세요.'
-    });
-  }
-};
-
-  const handleGoogleLogin = () => {
-    // Mock Google SSO login
-    const mockUser = {
-      id: 'google_1',
-      name: '홍길동',
-      email: 'hong@gmail.com',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop'
-    };
-    handleLogin(mockUser);
+  // 각 버튼 클릭 시 해당 소셜 로그인 페이지로 이동
+  const handleKakaoLogin = () => {
+    window.location.href = KAKAO_AUTH_URL;
   };
 
   const handleNaverLogin = () => {
-    // Mock Naver SSO login
-    const mockUser = {
-      id: 'naver_2',
-      name: '김민수',
-      email: 'kim@naver.com',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop'
-    };
-    handleLogin(mockUser);
+    window.location.href = NAVER_AUTH_URL;
   };
 
-  const handleKakaoLogin = () => {
-    // (수정부분) 바로 카카오 로그인 url로 이동
-    window.location.href = KAKAO_AUTH_URL;
+  const handleGoogleLogin = () => {
+    window.location.href = GOOGLE_AUTH_URL;
   };
 
   return (

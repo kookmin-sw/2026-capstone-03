@@ -62,7 +62,7 @@ app.post('/api/login', (req, res) => {
   });
 });
 
-// (수정) 카카오 소셜 로그인용
+// 카카오 소셜 로그인용
 app.post('/api/auth/kakao', async (req, res) => {
   const { code } = req.body;
 
@@ -75,6 +75,7 @@ app.post('/api/auth/kakao', async (req, res) => {
     const tokenResponse = await axios.post('https://kauth.kakao.com/oauth/token', null, {
       params: {
         grant_type: 'authorization_code',
+        // id와 url은 추후 .env로 뺄 예정
         client_id: 'f03731266c0fae4f844f404a0ffc1e10',
         redirect_uri: 'http://localhost:5173/kakaologin',
         code: code,
@@ -126,6 +127,101 @@ app.post('/api/auth/kakao', async (req, res) => {
   } catch (error) {
     console.error('❌ 카카오 API 통신 에러:', error.response?.data || error.message);
     res.status(500).json({ error: '카카오 서버 통신 실패' });
+  }
+});
+
+// (수정) 네이버, 구글 로그인 추가
+app.post('/api/auth/naver', async (req, res) => {
+  const { code, state } = req.body; // 네이버는 보안상 state 값도 같이 받아야 해!
+
+  try {
+    // 1. 토큰 발급
+    const tokenResponse = await axios.get('https://nid.naver.com/oauth2.0/token', {
+      params: {
+        grant_type: 'authorization_code',
+        client_id: 'OU5On9cK56h1zUDeUaAe',
+        client_secret: 'h5WeC06E1q',
+        code: code,
+        state: state
+      }
+    });
+
+    // 2. 유저 정보 조회
+    const userResponse = await axios.get('https://openapi.naver.com/v1/nid/me', {
+      headers: { Authorization: `Bearer ${tokenResponse.data.access_token}` }
+    });
+
+    const naverData = userResponse.data.response;
+
+    // 3. DB 포맷팅 및 저장
+    const user = {
+      id: `naver_${naverData.id}`,
+      name: naverData.name || naverData.nickname || '네이버유저',
+      email: naverData.email || '이메일없음',
+      avatar: naverData.profile_image || 'https://via.placeholder.com/150'
+    };
+
+    const sql = `
+      INSERT INTO users (id, name, email, avatar, login_at) 
+      VALUES (?, ?, ?, ?, NOW())
+      ON DUPLICATE KEY UPDATE name = ?, email = ?, avatar = ?, login_at = NOW()
+    `;
+
+    db.query(sql, [user.id, user.name, user.email, user.avatar, user.name, user.email, user.avatar], (err) => {
+      if (err) return res.status(500).json({ error: 'DB 저장 실패' });
+      res.status(200).json({ message: '네이버 로그인 성공', user });
+    });
+
+  } catch (error) {
+    console.error('❌ 네이버 통신 에러:', error.response?.data || error.message);
+    res.status(500).json({ error: '네이버 서버 통신 실패' });
+  }
+});
+
+app.post('/api/auth/google', async (req, res) => {
+  const { code } = req.body;
+
+  try {
+    // 1. 토큰 발급
+    const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', null, {
+      params: {
+        client_id: '147281860929-h7ovf71ou4ggb1jve6coujee7fgkqer1.apps.googleusercontent.com',
+        client_secret: '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',
+        code: code,
+        grant_type: 'authorization_code',
+        redirect_uri: 'http://localhost:5173/googlelogin'
+      }
+    });
+
+    // 2. 유저 정보 조회
+    const userResponse = await axios.get('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: { Authorization: `Bearer ${tokenResponse.data.access_token}` }
+    });
+
+    const googleData = userResponse.data;
+
+    // 3. DB 포맷팅 및 저장
+    const user = {
+      id: `google_${googleData.id}`,
+      name: googleData.name || '구글유저',
+      email: googleData.email || '이메일없음',
+      avatar: googleData.picture || 'https://via.placeholder.com/150'
+    };
+
+    const sql = `
+      INSERT INTO users (id, name, email, avatar, login_at) 
+      VALUES (?, ?, ?, ?, NOW())
+      ON DUPLICATE KEY UPDATE name = ?, email = ?, avatar = ?, login_at = NOW()
+    `;
+
+    db.query(sql, [user.id, user.name, user.email, user.avatar, user.name, user.email, user.avatar], (err) => {
+      if (err) return res.status(500).json({ error: 'DB 저장 실패' });
+      res.status(200).json({ message: '구글 로그인 성공', user });
+    });
+
+  } catch (error) {
+    console.error('❌ 구글 통신 에러:', error.response?.data || error.message);
+    res.status(500).json({ error: '구글 서버 통신 실패' });
   }
 });
 

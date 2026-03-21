@@ -25,10 +25,6 @@ DB_HOST=localhost
 DB_USER=root
 DB_PASSWORD=본인의_로컬_DB_비밀번호_입력
 DB_NAME=stamp_tour
-
-# 카카오 로그인 API 세팅
-KAKAO_REST_API_KEY=발급받은_키_입력  # 🔑 없으면 박상윤에게 문의
-KAKAO_REDIRECT_URI=http://localhost:5173/kakaologin
 ```
 
 **3. 서버 실행**
