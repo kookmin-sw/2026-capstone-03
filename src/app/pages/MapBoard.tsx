@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Map, MapMarker, Polygon } from 'react-kakao-maps-sdk';
+import {culturalSites} from '../data/mockData';
 
 // ----------------------------------------------------
 // 1. 타입(Type) 설계도 정의하기 (여기가 TS의 핵심!)
 // ----------------------------------------------------
+
 
 // 랜드마크 데이터 모양
 interface Landmark {
@@ -12,6 +14,7 @@ interface Landmark {
   lat: number;
   lng: number;
   region: string;
+  img: string;
 }
 
 // 스탬프 달성률 데이터 모양
@@ -27,11 +30,15 @@ type RegionStamps = Record<string, RegionStampData>;
 // ----------------------------------------------------
 // 2. 가짜 데이터 세팅 (나중에 백엔드/DB에서 가져올 부분)
 // ----------------------------------------------------
-const DUMMY_LANDMARKS: Landmark[] = [
-  { id: 1, name: '남산서울타워', lat: 37.5511, lng: 126.9882, region: '서울특별시' },
-  { id: 2, name: '수원화성', lat: 37.2884, lng: 127.0142, region: '경기도' },
-];
 
+export const landmarks: Landmark[] = culturalSites.map((site) => ({
+  id: Number(site.id), 
+  name: site.name,
+  lat: site.lat,
+  lng: site.lng,
+  region: site.region,
+  img: site.image
+}));
 const GYEONGGI_POLYGON_PATH = [
   { lat: 37.3, lng: 126.8 }, { lat: 37.4, lng: 127.1 }, { lat: 37.2, lng: 127.2 }
 ];
@@ -94,7 +101,7 @@ export default function MapBoard() {
           fillOpacity={0.6}
         />
 
-        {DUMMY_LANDMARKS.map((landmark) => (
+        {landmarks.map((landmark) => (
           <MapMarker
             key={landmark.id}
             position={{ lat: landmark.lat, lng: landmark.lng }}
@@ -105,6 +112,12 @@ export default function MapBoard() {
 
       {selectedLandmark && (
         <div style={modalStyle}>
+          {/* ✨ 추가: 이미지 표시 */}
+          <img 
+            src={selectedLandmark.img} 
+            alt={selectedLandmark.name} 
+            style={imageStyle} 
+          />
           <h3>{selectedLandmark.name}</h3>
           <p>지역: {selectedLandmark.region}</p>
           
@@ -138,4 +151,11 @@ const modalStyle: React.CSSProperties = {
   boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
   zIndex: 10,
   width: '300px',
+};
+const imageStyle: React.CSSProperties = {
+  width: '100%',
+  height: '180px',
+  objectFit: 'cover', // 이미지가 비율 유지하며 꽉 차게
+  borderRadius: '8px',
+  marginBottom: '15px',
 };
