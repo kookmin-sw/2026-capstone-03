@@ -1,13 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Map, MapMarker, Polygon } from 'react-kakao-maps-sdk';
 import {culturalSites} from '../data/mockData';
 
-// ----------------------------------------------------
-// 1. 타입(Type) 설계도 정의하기 (여기가 TS의 핵심!)
-// ----------------------------------------------------
 
-
-// 랜드마크 데이터 모양
 interface Landmark {
   id: number;
   name: string;
@@ -17,19 +12,13 @@ interface Landmark {
   img: string;
 }
 
-// 스탬프 달성률 데이터 모양
 interface RegionStampData {
   total: number;
   collected: number;
 }
 
-// 지역별 스탬프 모음 데이터 모양 (예: { "경기도": { total: 10, collected: 6 } })
 type RegionStamps = Record<string, RegionStampData>;
 
-
-// ----------------------------------------------------
-// 2. 가짜 데이터 세팅 (나중에 백엔드/DB에서 가져올 부분)
-// ----------------------------------------------------
 
 export const landmarks: Landmark[] = culturalSites.map((site) => ({
   id: Number(site.id), 
@@ -40,14 +29,12 @@ export const landmarks: Landmark[] = culturalSites.map((site) => ({
   img: site.image
 }));
 const GYEONGGI_POLYGON_PATH = [
-  { lat: 37.3, lng: 126.8 }, { lat: 37.4, lng: 127.1 }, { lat: 37.2, lng: 127.2 }
+  { lat: 37.3, lng: 126.8 },
+  { lat: 37.4, lng: 127.1 },
+  { lat: 37.2, lng: 127.2 }
 ];
 
-// ----------------------------------------------------
-// 3. 메인 컴포넌트
-// ----------------------------------------------------
 export default function MapBoard() {
-  // useState에 타입(<Landmark | null>)을 지정해 줌!
   const [selectedLandmark, setSelectedLandmark] = useState<Landmark | null>(null);
   const [myLocation, setMyLocation] = useState({ lat: 37.5665, lng: 126.9780 });
   
@@ -56,15 +43,32 @@ export default function MapBoard() {
     '서울특별시': { total: 5, collected: 1 },
   });
 
-  // 매개변수 landmark에도 타입을 지정 (landmark: Landmark)
-  const handleStamp = (landmark: Landmark) => {
-    const isNear = true; // 임시 거리 조건
-    if (isNear) {
-      alert(`${landmark.name} 스탬프 획득 성공!`);
-      // TODO: 스탬프 +1 업데이트 로직 추가
-    } else {
-      alert('랜드마크 근처로 더 이동해주세요!');
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const stampEarned = params.get('stampEarned');
+    const landmarkName = params.get('name');
+
+    if (stampEarned === '1') {
+      alert(`${landmarkName ?? '문화재'} 스탬프 획득 성공! 🏆`);
+
+      params.delete('stampEarned');
+      params.delete('name');
+
+      const newQuery = params.toString();
+      const newUrl = `${window.location.pathname}${newQuery ? `?${newQuery}` : ''}`;
+      window.history.replaceState({}, '', newUrl);
     }
+  }, []);
+
+  const handleStamp = (landmark: Landmark) => {
+    const isNear = true;
+
+    if (!isNear) {
+      alert('랜드마크 근처로 더 이동해주세요!');
+      return;
+    }
+    window.location.href = `/camera?name=${encodeURIComponent(landmark.name)}&region=${encodeURIComponent(landmark.region)}&lat=${landmark.lat}&lng=${landmark.lng}`;
+    // window.location.href = `/quiz?name=${encodeURIComponent(landmark.name)}&region=${encodeURIComponent(landmark.region)}&lat=${landmark.lat}&lng=${landmark.lng}`;
   };
 
   const handleDirections = (landmark: Landmark) => {
@@ -139,7 +143,6 @@ export default function MapBoard() {
   );
 }
 
-// 모달 스타일 (CSS-in-JS 방식)
 const modalStyle: React.CSSProperties = {
   position: 'absolute',
   bottom: '50px',

@@ -5,11 +5,12 @@ import { Home } from './pages/Home';
 import { StampCollection } from './pages/StampCollection';
 import { SiteDetail } from './pages/SiteDetail';
 import { GiftExchange } from './pages/GiftExchange';
-// (수정부분)
+
 import { KakaoCallback } from './pages/KakaoCallback';
 import { NaverCallback } from './pages/NaverCallback';
 import { GoogleCallback } from './pages/GoogleCallback';
-
+import { Quiz } from './pages/Quiz';
+import CameraPage from './pages/CameraPage';
 
 export const router = createBrowserRouter([
   {
@@ -21,10 +22,11 @@ export const router = createBrowserRouter([
       { index: true, element: <Home /> },
       { path: 'site/:id', element: <SiteDetail /> },
       { path: 'gifts', element: <GiftExchange /> },
-      // (수정부분) 로그인 추가
-      { path: 'kakaologin', element: <KakaoCallback /> },
-      { path: 'naverlogin', element: <NaverCallback /> },
-      { path: 'googlelogin', element: <GoogleCallback /> },
+      { path: 'kakaologin', element: <KakaoCallback /> }, // (수정부분) 카카오 로그인 추가
+      { path: 'naverlogin', element: <NaverCallback /> }, // (수정부분) 네이버 로그인 추가
+      { path: 'googlelogin', element: <GoogleCallback /> }, // (수정부분) 구글 로그인 추가
+      { path: 'camera', element: <CameraPage /> },
+      { path: 'quiz', element: <Quiz /> },
     ],
   },
 ]);
