@@ -4,116 +4,172 @@ from PIL import Image
 from transformers import CLIPProcessor, CLIPModel
 from rembg import remove 
 import os
+import threading
+import time   
 
-# 디바이스 
-device = "cuda" if torch.cuda.is_available() else "cpu"
-model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(device)
-processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
-model.eval()
-
-# 타겟경로
-IMG_DIR = "img"
-TARGET_IMG_PATH = os.path.join(IMG_DIR, "tar.png")      
-GUIDE_OVL_PATH = os.path.join(IMG_DIR, "guide_overlay.png") 
-
-def setup_reference(img_path):
-    print(f"\n기준 이미지 처리 시작: {img_path}")
-    if not os.path.exists(img_path):
-        raise FileNotFoundError(f"파일 없음: {img_path}")
-
-    original_img = Image.open(img_path)
-    print("배경 제거")
-    subjects_only_img = remove(original_img)
-    subjects_only_img.save(os.path.join(IMG_DIR, "tar_no_bg.png"))
-    inputs = processor(images=subjects_only_img.convert("RGB"), return_tensors="pt").to(device)
-    
-    with torch.no_grad():
-        target_features = model.get_image_features(**inputs)
-    
-    target_embedding = target_features / target_features.norm(dim=-1, keepdim=True)
-    print("이미지 처리 끝")
-    return target_embedding
-
-def create_guided_frame(camera_frame, guide_img):
-    h, w, _ = camera_frame.shape
-    #가이드라인 설정
-    resized_guide = cv2.resize(guide_img, (w, h), interpolation=cv2.INTER_AREA)
-    guide_rgb = resized_guide[:, :, :3]
-    alpha_channel = resized_guide[:, :, 3] / 255.0 
-    #불투명도
-    global_alpha = 0.25
-    adjusted_alpha = alpha_channel * global_alpha
-
-    result_frame = camera_frame.copy()
-    for c in range(0, 3):
-        result_frame[:, :, c] = (camera_frame[:, :, c] * (1.0 - adjusted_alpha) + 
-                                guide_rgb[:, :, c] * adjusted_alpha)
+class ImageMatcher:
+    def __init__(self, img_dir="img", target_filename="tar.png", guide_filename="guide_overlay.png", emb_filename="target_emb.pt", match_threshold=0.75):
         
-    return result_frame
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        
+        self.img_dir = img_dir
+        self.target_path = os.path.join(self.img_dir, target_filename)
+        self.guide_path = os.path.join(self.img_dir, guide_filename)
+        self.emb_path = os.path.join(self.img_dir, emb_filename)
+        self.match_threshold = match_threshold
 
+        self.model = None
+        self.processor = None
+        self.target_emb = None
+        self.guide_img = None
 
-def main():
-    try:
-        target_emb = setup_reference(TARGET_IMG_PATH)
-  
-        if not os.path.exists(GUIDE_OVL_PATH):
-            print(f"경고: 가이드 이미지가 없어 가이드 없이 실행")
-            guide_img = None
+        self.is_model_loaded = False
+        
+        self.REQUIRED_DURATION = 3.0 
+        self.match_start_time = None 
+        self.is_success = False     
+
+    def _load_model_async(self):
+        self.model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(self.device)
+        self.processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+        self.model.eval()
+        self.load_embedding()
+        self.is_model_loaded = True
+
+    def generate_and_save_embedding(self):
+        if not os.path.exists(self.target_path): raise FileNotFoundError(f"파일 없음: {self.target_path}")
+        original_img = Image.open(self.target_path)
+
+        subjects_only_img = remove(original_img)
+        subjects_only_img.save(os.path.join(self.img_dir, "tar_no_bg.png"))
+        inputs = self.processor(images=subjects_only_img.convert("RGB"), return_tensors="pt").to(self.device)
+        with torch.no_grad():
+            target_features = self.model.get_image_features(**inputs)
+            if hasattr(target_features, "pooler_output"): target_features = target_features.pooler_output
+        self.target_emb = target_features / target_features.norm(dim=-1, keepdim=True)
+        torch.save(self.target_emb, self.emb_path)
+
+    def load_embedding(self):
+        if not os.path.exists(self.emb_path):
+            self.generate_and_save_embedding()
         else:
-            guide_img = cv2.imread(GUIDE_OVL_PATH, cv2.IMREAD_UNCHANGED)
+            self.target_emb = torch.load(self.emb_path, map_location=self.device, weights_only=True)
 
-        cap = cv2.VideoCapture(0)
-        if not cap.isOpened():
-            raise Exception("카메라 없음")
+    def load_guide_image(self):
+        if not os.path.exists(self.guide_path):
+            self.guide_img = None
+        else:
+            self.guide_img = cv2.imread(self.guide_path, cv2.IMREAD_UNCHANGED)
+ 
+    def apply_guide_overlay(self, camera_frame, progress=0.0):
+        if self.guide_img is None: return camera_frame.copy()
+        h, w, _ = camera_frame.shape
+        resized_guide = cv2.resize(self.guide_img, (w, h), interpolation=cv2.INTER_AREA)
+        guide_rgb = resized_guide[:, :, :3]
+        alpha_channel = resized_guide[:, :, 3] / 255.0  
+        base_alpha = 0.25
+        global_alpha = base_alpha + (0.8 - base_alpha) * progress
+        
+        adjusted_alpha = alpha_channel * global_alpha
+        result_frame = camera_frame.copy()
+        
+        for c in range(0, 3):
+            result_frame[:, :, c] = (camera_frame[:, :, c] * (1.0 - adjusted_alpha) + guide_rgb[:, :, c] * adjusted_alpha)
+        return result_frame
 
-        print("\n실시간 카메라 시작")
-        print("'q'를 누르면 종료")
+    def calculate_similarity(self, frame): 
+        img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        pil_img = Image.fromarray(img_rgb)
+        inputs = self.processor(images=pil_img, return_tensors="pt").to(self.device)
+        with torch.no_grad():
+            outputs = self.model.get_image_features(**inputs)
+            if hasattr(outputs, "pooler_output"): curr_features = outputs.pooler_output
+            else: curr_features = outputs 
+            curr_features = curr_features / curr_features.norm(dim=-1, keepdim=True)
+        return (curr_features @ self.target_emb.T).item()
 
-        frame_count = 0
-        score = 0.0
-        is_match = False
+    def _on_success_triggered(self):
+        print("\n 3초 유지 성공")
 
-        while True:
-            ret, frame = cap.read()
-            if not ret: break
-            frame_count += 1
-            if guide_img is not None:
-                display_frame = create_guided_frame(frame, guide_img)
-            else:
-                display_frame = frame.copy()
-            # 유사도 체크
-            if frame_count % 5 == 0:
-                img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                pil_img = Image.fromarray(img_rgb)
+    def run(self):
+        try:
+            self.load_guide_image()
+            loading_thread = threading.Thread(target=self._load_model_async, daemon=True)
+            loading_thread.start()
 
-                inputs = processor(images=pil_img, return_tensors="pt").to(device)
-                with torch.no_grad():
-                    curr_features = model.get_image_features(**inputs)
-                    curr_features /= curr_features.norm(dim=-1, keepdim=True)
+            cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+            if not cap.isOpened(): raise Exception("카메라 없음")
+
+            print("'q': 종료, 'r': 성공 상태 초기화(재시도)")
+
+            frame_count = 0
+            score = 0.0
+            is_match = False
+            progress = 0.0 
+
+            while True:
+                ret, frame = cap.read()
+                if not ret: break
+                frame_count += 1 
+                 
+                if self.is_model_loaded: 
+                    if frame_count % 5 == 0:
+                        score = self.calculate_similarity(frame)
+                        is_match = score > self.match_threshold
+
+                    current_time = time.time() 
+                    if self.is_success: 
+                        status_text = "-SUCCESS!-"
+                        color = (255, 0, 0)  
+                        progress = 1.0     
+                    
+                    elif is_match: 
+                        if self.match_start_time is None:
+                            self.match_start_time = current_time 
+                        
+                        elapsed_time = current_time - self.match_start_time
+                        progress = min(elapsed_time / self.REQUIRED_DURATION, 1.0)
+                        
+                        status_text = f"-Holding ({elapsed_time:.1f}s)-"
+                        color = (0, 255, 255) 
+
+                        if elapsed_time >= self.REQUIRED_DURATION:
+                            self.is_success = True
+                            self.match_start_time = None 
+                            self._on_success_triggered()  
+                    
+                    else:
+                        self.match_start_time = None
+                        progress = 0.0
+                        status_text = "-Searching-"
+                        color = (0, 0, 255) 
+                else:
+                    progress = 0.0
+ 
+                display_frame = self.apply_guide_overlay(frame, progress=progress)
+ 
+                if self.is_model_loaded:
+                    cv2.putText(display_frame, f"{status_text} ({score*100:.1f}%)", (30, 50), 
+                                cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2, cv2.LINE_AA)
+                else:
+                    cv2.putText(display_frame, "-Loading-", (30, 50), 
+                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2, cv2.LINE_AA)
                 
-                score = (curr_features @ target_emb.T).item()
-                is_match = score > 0.75
+                cv2.imshow("Camera", display_frame)
+                
+                key = cv2.waitKey(1) & 0xFF
+                if key == ord('q'):
+                    break
+                elif key == ord('r'): 
+                    self.is_success = False
+                    self.match_start_time = None
 
-            status_text = "-good!-" if is_match else "-checking-"
-            color = (0, 255, 0) if is_match else (0, 0, 255)
-
-            
-            cv2.putText(display_frame, f"{status_text} ({score:.2f})%", (30, 50), 
-                        cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
-            
-            h, w, _ = frame.shape
-
-            cv2.imshow("Camera", display_frame)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-
-    except Exception as e:
-        print(f"\n오류 발생: {e}")
-    finally:
-        if 'cap' in locals() and cap.isOpened():
-            cap.release()
-        cv2.destroyAllWindows()
-        print("\n프로그램 종료.")
+        except Exception as e: print(f"\n오류: {e}")
+        finally:
+            if 'cap' in locals() and cap.isOpened(): cap.release()
+            cv2.destroyAllWindows()
+            print("\n프로그램 종료.")
 
 if __name__ == "__main__":
-    main()
+    matcher = ImageMatcher()
+    matcher.run()
