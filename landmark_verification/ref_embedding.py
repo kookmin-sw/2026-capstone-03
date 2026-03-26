@@ -29,8 +29,8 @@ def load_data(csv_path):
     with open(csv_path, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)          # expects header: id, name, path
         for row in reader:
-            data_list.append(row["path"])
-            id_list.append(row["id"])
+            data_list.append(row["img"])
+            id_list.append(row["ID"])
 
     return data_list, id_list
 
