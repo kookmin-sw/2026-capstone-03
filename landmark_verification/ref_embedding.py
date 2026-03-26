@@ -10,7 +10,7 @@ model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(device)
 processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 model.eval()
 
-CSV_PATH = "./data.csv"          # single CSV file:  id, name, path
+CSV_PATH = "./ref_img.csv"          # single CSV file:  id, name, path
 EMBEDDING_DIR = "./reference_embedding"
 
 
