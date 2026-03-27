@@ -1,5 +1,5 @@
 import cv2
-# 카메라 찾는 코드
+
 def check_camera():
     for i in range(5):
         cap = cv2.VideoCapture(i)
