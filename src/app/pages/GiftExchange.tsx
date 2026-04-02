@@ -6,6 +6,7 @@ import { Badge } from '../components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { toast } from 'sonner';
 
+// 목업 데이터 (임시)
 const gifts = [
   { id: '1', name: '아메리카노 쿠폰', requiredStamps: 3, description: '스타벅스 아메리카노 Tall', category: '카페', image: '☕' },
   { id: '2', name: '문화상품권 5천원', requiredStamps: 10, description: '온/오프라인 공용 상품권', category: '상품권', image: '🎟️' },
@@ -13,12 +14,13 @@ const gifts = [
   { id: '4', name: '호텔 숙박권', requiredStamps: 50, description: '지역 제휴 호텔 1박권', category: '여행', image: '🏨' },
 ];
 
+// 기초 상태 설정
 export function GiftExchange() {
   const [selectedGift, setSelectedGift] = useState<typeof gifts[0] | null>(null);
   const [exchangedGifts, setExchangedGifts] = useState<string[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string>('');
   const [stampCount, setStampCount] = useState<number>(0); 
-
+  // 유저 불러오기
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
@@ -26,7 +28,7 @@ export function GiftExchange() {
       setCurrentUserId(parsedUser.id);
     }
   }, []);
-
+  // 유저에서 현재 스탬프 갯수를 받아옴 stampCount에 저장
   useEffect(() => {
     if (!currentUserId) return;
 
@@ -44,15 +46,15 @@ export function GiftExchange() {
     fetchMyStamps();
   }, [currentUserId]);
 
-  // 💡 핵심: 선물 교환 및 스탬프 차감 로직
+  // 선물 교환 및 스탬프 차감 
   const handleExchange = async () => {
     if (!selectedGift) return;
 
-    // 1. 프론트엔드 상태 즉시 업데이트 (사용자 경험 향상)
+    // 프론트 상태 업데이트
     const newStampCount = stampCount - selectedGift.requiredStamps;
     
     try {
-      /* // 2. 💡 실제 DB 연동 시 백엔드에 차감 요청을 보내야 함
+      /* // DB 연동 시 백엔드에 요청을 보내야 함
       const response = await fetch('http://localhost:5000/api/exchange', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -66,8 +68,8 @@ export function GiftExchange() {
       if (!response.ok) throw new Error('교환 처리 중 오류 발생');
       */
 
-      // 3. 상태 업데이트
-      setStampCount(newStampCount); // 스탬프 개수 차감
+      // 상태 업데이트
+      setStampCount(newStampCount);
       setExchangedGifts([...exchangedGifts, selectedGift.id]);
       
       toast.success('교환 완료!', {
@@ -80,19 +82,20 @@ export function GiftExchange() {
       setSelectedGift(null);
     }
   };
-
+  // 현재 상품을 교환할 수 있는 지 체크
   const canExchange = (gift: typeof gifts[0]) => {
     return stampCount >= gift.requiredStamps && !exchangedGifts.includes(gift.id);
   };
-
+  // 상품을 스탬프 기준으로 오름차순 
   const sortedGifts = [...gifts].sort((a, b) => a.requiredStamps - b.requiredStamps);
 
+  //UI
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      {/* Header */}
+      {/* 상단 헤더 */}
       <div className="bg-gradient-to-br from-pink-600 to-rose-700 text-white p-8 rounded-b-[2.5rem] shadow-lg">
         <h1 className="text-2xl font-bold mb-1">선물 교환소</h1>
-        <p className="text-pink-100 text-sm opacity-90">스탬프를 사용하여 보상을 획득하세요!</p>
+        <p className="text-pink-100 text-sm opacity-90">스탬프를 사용해 선물과 교환하세요!</p>
         
         <div className="mt-6 bg-white/15 backdrop-blur-md rounded-2xl p-5 border border-white/10 shadow-inner">
           <div className="flex items-center justify-between">
@@ -108,7 +111,7 @@ export function GiftExchange() {
       </div>
 
       <div className="p-5 max-w-2xl mx-auto space-y-6">
-        {/* Next Reward Progress */}
+        {/* 다음 목표 선물 정보 */}
         <Card className="border-none shadow-md bg-white rounded-3xl overflow-hidden">
           <CardContent className="p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -117,12 +120,12 @@ export function GiftExchange() {
               </div>
               <h2 className="font-bold text-gray-800">다음 목표 선물</h2>
             </div>
-            
+            {/* 정렬 해둬서 /find로 바로 찾기 가능 */}
             {(() => {
               const nextGift = sortedGifts.find(g => 
                 g.requiredStamps > stampCount && !exchangedGifts.includes(g.id)
               );
-              
+              {/* 만약 상품이 더 없을 때 창 */}
               if (!nextGift) {
                 return (
                   <div className="bg-green-50 p-4 rounded-2xl flex items-center gap-3">
@@ -153,7 +156,7 @@ export function GiftExchange() {
           </CardContent>
         </Card>
 
-        {/* Gifts Grid */}
+        {/* 선물 칸 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {sortedGifts.map((gift) => {
             const isExchanged = exchangedGifts.includes(gift.id);

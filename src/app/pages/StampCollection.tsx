@@ -3,6 +3,7 @@ import { Card, CardContent } from '../components/ui/card';
 import { Star, Calendar, Award, ChevronDown, ChevronUp, MapPin, CheckCircle2 } from 'lucide-react';
 import { Badge } from '../components/ui/badge';
 
+// 랜드마크 정의
 interface Landmark {
   id: string;
   name: string;
@@ -17,11 +18,12 @@ interface Landmark {
   collectedAt?: string;
 }
 
+// 컴포넌트 시작/ 상태 선언(로그인한 사용자 아이디, 창 열닫)
 export function StampCollection() {
   const [landmarks, setLandmarks] = useState<Landmark[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string>('');
   const [openRegions, setOpenRegions] = useState<Record<string, boolean>>({});
-
+  // 유저정보 저장
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
@@ -29,7 +31,7 @@ export function StampCollection() {
       setCurrentUserId(parsedUser.id);
     }
   }, []);
-
+  // 유저정보 저장 후 실행
   useEffect(() => {
     if (!currentUserId) return;
     const fetchLandmarks = async () => {
@@ -37,9 +39,10 @@ export function StampCollection() {
         const response = await fetch(`http://localhost:5000/api/landmarks?userId=${currentUserId}`);
         const data = await response.json();
         setLandmarks(data);
-        
+        // 중복제거 후 지역명만 저장 
         const regions = Array.from(new Set(data.map((l: Landmark) => l.region)));
         if (regions.length > 0) {
+          // 시작 시 열어둘 지역 설정 현재 0번 인덱스
           setOpenRegions({ [regions[0] as string]: true });
         }
       } catch (error) {
@@ -49,7 +52,7 @@ export function StampCollection() {
     fetchLandmarks();
   }, [currentUserId]);
 
-  // 💡 데이터를 지역별로 그룹화
+  // 데이터를 지역별로 그룹화/useMemo로 landmark가 바뀔때만 동작
   const groupedData = useMemo(() => {
     return landmarks.reduce((acc, landmark) => {
       const { region } = landmark;
@@ -58,35 +61,38 @@ export function StampCollection() {
       return acc;
     }, {} as Record<string, Landmark[]>);
   }, [landmarks]);
-
+  //  지역, 획득 스탬프 수, 전체 달성률 
   const regions = Object.keys(groupedData).sort();
   const collectedCount = landmarks.filter(l => l.stampCollected).length;
   const completionRate = Math.round((collectedCount / (landmarks.length || 1)) * 100);
 
-  // 💡 완료된 지역 계산 (수집률 80% 이상)
+  // 완료된 지역 계산
   const completedRegionsCount = useMemo(() => {
     return regions.filter(region => {
       const regionLandmarks = groupedData[region];
       const regionCollected = regionLandmarks.filter(l => l.stampCollected).length;
       const regionRate = (regionCollected / regionLandmarks.length) * 100;
-      return regionRate >= 80; // 80% 기준
+      // 완료 수집률 설정 현재 80%
+      return regionRate >= 80; 
     }).length;
   }, [groupedData, regions]);
 
+  // 토글 함수
   const toggleRegion = (region: string) => {
     setOpenRegions(prev => ({ ...prev, [region]: !prev[region] }));
   };
 
+  //UI
   return (
     <div className="min-h-screen bg-gray-50 pb-24 font-sans">
       
-      {/* 🟣 상단 헤더: 완료한 지역 통계 적용 */}
+      {/* 상단 헤더 */}
       <div className="bg-gradient-to-br from-purple-700 to-indigo-800 text-white p-8 rounded-b-[2.5rem] shadow-xl">
         <div className="mb-6 text-center">
           <h1 className="text-2xl font-black tracking-tight mb-1">나의 스탬프 북</h1>
-          <p className="text-purple-200 text-sm opacity-80">80% 이상 수집 시 지역 완료!</p>
+          <p className="text-purple-200 text-sm opacity-80">80% 이상 수집 하면 지역 완료!</p>
         </div>
-
+        {/* 칸을 3개로 분할 */}
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/10 text-center">
             <div className="text-2xl font-black text-yellow-300">{collectedCount}</div>
@@ -103,19 +109,20 @@ export function StampCollection() {
         </div>
       </div>
 
-      {/* 🗺️ 지역별 리스트 섹션 */}
+      {/* 지역별 리스트 배열을 만들어서 달성률,완료했는지, 열려있는지 확인 */}
       <div className="p-5 mt-4 space-y-4">
         {regions.map((region) => {
           const regionLandmarks = groupedData[region];
           const regionCollected = regionLandmarks.filter(l => l.stampCollected).length;
           const regionRate = Math.round((regionCollected / regionLandmarks.length) * 100);
-          const isCompleted = regionRate >= 80; // 💡 80% 완료 여부
+          {/* 완료 퍼센티지 설정 */}
+          const isCompleted = regionRate >= 80; 
           const isOpen = openRegions[region];
 
           return (
             <div key={region} className={`bg-white rounded-3xl shadow-sm border overflow-hidden transition-all ${isCompleted ? 'border-emerald-200 ring-1 ring-emerald-100' : 'border-gray-100'}`}>
               
-              {/* 지역 헤더 */}
+              {/* 접었다 펴는 부분 성공 여부에 따라 색 설정 */}
               <button 
                 onClick={() => toggleRegion(region)}
                 className={`w-full flex items-center justify-between p-5 transition-colors ${isOpen ? (isCompleted ? 'bg-emerald-50/50' : 'bg-purple-50/50') : 'bg-white'}`}
@@ -149,7 +156,7 @@ export function StampCollection() {
                 </div>
               </button>
 
-              {/* 그리드 내용 */}
+              {/* 열렸을 때 내용 */}
               {isOpen && (
                 <div className="p-4 grid grid-cols-2 gap-3 bg-white border-t border-gray-50 animate-in fade-in slide-in-from-top-2 duration-300">
                   {regionLandmarks.map((item) => (
