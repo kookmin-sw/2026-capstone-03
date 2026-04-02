@@ -69,8 +69,8 @@ def main():
         inputs = processor(images=images, return_tensors="pt").to(device)
         with torch.no_grad():
             features = model.get_image_features(**inputs)
+            embeddings = features
 
-        embeddings = features / features.norm(dim=-1, keepdim=True)  # (N, dim)
 
         save_embedding(EMBEDDING_DIR, batch_ids, embeddings)
 

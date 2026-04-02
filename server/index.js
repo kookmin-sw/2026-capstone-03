@@ -33,6 +33,63 @@ app.get('/', (req, res) => {
   res.send('서버와 DB가 연결되었습니다!');
 });
 
+// 랜드마크 sql 데이터 (유저별 스탬프 획득 여부 포함)
+app.get('/api/landmarks', (req, res) => {
+  const userId = req.query.userId;
+
+  if (!userId) {
+    return res.status(400).json({ error: '유저 ID가 필요합니다.' });
+  }
+
+  const sql = `
+    SELECT l.*, 
+           IF(s.id IS NOT NULL, 1, 0) AS stampCollected
+    FROM landmarks l
+    LEFT JOIN stamps s ON l.id = s.landmark_id AND s.user_id = ?
+  `;
+
+  db.query(sql, [userId], (err, results) => {
+    if (err) {
+      console.error('랜드마크 조회 에러:', err);
+      return res.status(500).json({ error: 'DB에서 랜드마크를 불러오는 데 실패했습니다.' });
+    }
+
+    // 1과 0을 true/false로 변환
+    const formattedResults = results.map(row => ({
+      ...row,
+      stampCollected: row.stampCollected === 1
+    }));
+
+    // 프론트엔드로 전송
+    res.status(200).json(formattedResults);
+  });
+});
+
+// 스탬프 획득(저장) API
+app.post('/api/stamps', (req, res) => {
+  const { userId, landmarkId } = req.body;
+
+  if (!userId || !landmarkId) {
+    return res.status(400).json({ error: '유저 ID와 랜드마크 ID가 필요합니다.' });
+  }
+
+  const sql = 'INSERT INTO stamps (user_id, landmark_id) VALUES (?, ?)';
+
+  db.query(sql, [userId, landmarkId], (err, result) => {
+    if (err) {
+      // 이미 도장을 찍은 경우
+      if (err.code === 'ER_DUP_ENTRY') {
+        return res.status(409).json({ error: '이미 획득한 스탬프입니다!' });
+      }
+
+      console.error('스탬프 저장 에러:', err);
+      return res.status(500).json({ error: '스탬프 저장에 실패했습니다.' });
+    }
+
+    res.status(200).json({ message: '스탬프 획득 성공!' });
+  });
+});
+
 // 🚀 로그인 API: 데이터를 받아서 DB에 저장(INSERT) 함
 app.post('/api/login', (req, res) => {
   const { id, name, email, avatar } = req.body;
