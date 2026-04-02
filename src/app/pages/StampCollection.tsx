@@ -1,10 +1,59 @@
-import { collectedStamps, culturalSites } from '../data/mockData';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '../components/ui/card';
 import { Star, Calendar, Award } from 'lucide-react';
 import { Badge } from '../components/ui/badge';
 
+// 랜드마크 데이터 타입 정의
+interface Landmark {
+  id: string;
+  name: string;
+  description: string;
+  image_url: string;
+  category: string;
+  lat: number;
+  lng: number;
+  region: string;
+  distance?: number;
+  stampCollected: boolean;
+  collectedAt?: string;
+}
+
 export function StampCollection() {
-  const totalSites = culturalSites.length;
+  const [landmarks, setLandmarks] = useState<Landmark[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string>('');
+
+  // 화면 마운트 시 실제 로그인한 유저 ID 세팅
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      setCurrentUserId(parsedUser.id);
+    }
+  }, []);
+
+  // 유저 ID가 확인되면 백엔드 API 호출
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    const fetchLandmarks = async () => {
+      try {
+        const response = await fetch(`http://localhost:5000/api/landmarks?userId=${currentUserId}`);
+        if (!response.ok) throw new Error('네트워크 응답 에러');
+
+        const data = await response.json();
+        setLandmarks(data);
+      } catch (error) {
+        console.error('랜드마크 데이터를 불러오는 중 오류 발생:', error);
+      }
+    };
+
+    fetchLandmarks();
+  }, [currentUserId]);
+
+  const culturalSites = landmarks; // 전체 데이터
+  const collectedStamps = landmarks.filter(site => site.stampCollected); // 수집한 데이터
+
+  const totalSites = culturalSites.length || 1;
   const collectedCount = collectedStamps.length;
   const completionRate = Math.round((collectedCount / totalSites) * 100);
 
@@ -14,7 +63,7 @@ export function StampCollection() {
       <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-6">
         <h1 className="text-2xl font-bold mb-2">스탬프 컬렉션</h1>
         <p className="text-purple-100">내가 모은 문화재 스탬프</p>
-        
+
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3 mt-4">
           <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3 text-center">
@@ -43,8 +92,8 @@ export function StampCollection() {
             <Card key={stamp.id} className="overflow-hidden">
               <div className="relative">
                 <img
-                  src={stamp.image}
-                  alt={stamp.siteName}
+                  src={stamp.image_url}
+                  alt={stamp.name}
                   className="w-full h-32 object-cover"
                 />
                 <Badge className="absolute top-2 right-2 bg-purple-600">
@@ -53,10 +102,10 @@ export function StampCollection() {
                 </Badge>
               </div>
               <CardContent className="p-3">
-                <h3 className="font-bold text-sm mb-1">{stamp.siteName}</h3>
+                <h3 className="font-bold text-sm mb-1">{stamp.name}</h3>
                 <div className="flex items-center text-xs text-gray-500">
                   <Calendar className="w-3 h-3 mr-1" />
-                  {new Date(stamp.collectedAt).toLocaleDateString('ko-KR')}
+                  {stamp.collectedAt ? new Date(stamp.collectedAt).toLocaleDateString('ko-KR') : '-'}
                 </div>
               </CardContent>
             </Card>
@@ -72,7 +121,7 @@ export function StampCollection() {
               <Card key={site.id} className="overflow-hidden opacity-60">
                 <div className="relative">
                   <img
-                    src={site.image}
+                    src={site.image_url}
                     alt={site.name}
                     className="w-full h-32 object-cover grayscale"
                   />

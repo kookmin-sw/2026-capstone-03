@@ -82,7 +82,7 @@ export default function MapBoard({ landmarks, onStampSuccess, currentUserId }: M
       });
 
       if (response.ok) {
-        alert('스탬프 정보가 DB에 저장되었습니다!');
+        alert('스탬프 찍기 완료!');
 
         onStampSuccess(landmark.id);
 

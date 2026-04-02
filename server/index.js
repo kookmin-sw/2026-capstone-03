@@ -42,10 +42,11 @@ app.get('/api/landmarks', (req, res) => {
   }
 
   const sql = `
-    SELECT l.*, 
-           IF(s.id IS NOT NULL, 1, 0) AS stampCollected
+    SELECT l.*,
+           IF(s.id IS NOT NULL, 1, 0) AS stampCollected,
+           s.collected_at AS collectedAt -- 👈 🌟 이 줄 추가! (수집한 날짜 가져오기)
     FROM landmarks l
-    LEFT JOIN stamps s ON l.id = s.landmark_id AND s.user_id = ?
+           LEFT JOIN stamps s ON l.id = s.landmark_id AND s.user_id = ?
   `;
 
   db.query(sql, [userId], (err, results) => {
