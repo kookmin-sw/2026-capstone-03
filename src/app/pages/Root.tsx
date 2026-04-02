@@ -39,15 +39,27 @@ export function Root() {
       {showUserInfo && (
         <div className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-50 shadow-sm">
           <div className="max-w-md mx-auto flex items-center justify-between px-4 py-2">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white">
-                <User className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="text-sm font-medium">{user?.name}</div>
-                <div className="text-xs text-gray-500">{user?.email}</div>
-              </div>
-            </div>
+    <button
+  type="button"
+  onClick={() => navigate('/profile')}
+  className="flex items-center gap-2 text-left"
+>
+  <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white overflow-hidden">
+    {user?.profileImage ? (
+      <img
+        src={user.profileImage}
+        alt="프로필"
+        className="w-full h-full object-cover"
+      />
+    ) : (
+      <User className="w-4 h-4" />
+    )}
+  </div>
+  <div>
+    <div className="text-sm font-medium">{user?.name}</div>
+    <div className="text-xs text-gray-500">{user?.email}</div>
+  </div>
+      </button>
             <Button
               size="sm"
               variant="ghost"
