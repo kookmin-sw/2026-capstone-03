@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent } from '../components/ui/card';
-import { Star, Calendar, Award } from 'lucide-react';
+import { Star, Calendar, Award, ChevronDown, ChevronUp, MapPin, CheckCircle2 } from 'lucide-react';
 import { Badge } from '../components/ui/badge';
 
-// 랜드마크 데이터 타입 정의
 interface Landmark {
   id: string;
   name: string;
@@ -21,8 +20,8 @@ interface Landmark {
 export function StampCollection() {
   const [landmarks, setLandmarks] = useState<Landmark[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string>('');
+  const [openRegions, setOpenRegions] = useState<Record<string, boolean>>({});
 
-  // 화면 마운트 시 실제 로그인한 유저 ID 세팅
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
@@ -31,117 +30,155 @@ export function StampCollection() {
     }
   }, []);
 
-  // 유저 ID가 확인되면 백엔드 API 호출
   useEffect(() => {
     if (!currentUserId) return;
-
     const fetchLandmarks = async () => {
       try {
         const response = await fetch(`http://localhost:5000/api/landmarks?userId=${currentUserId}`);
-        if (!response.ok) throw new Error('네트워크 응답 에러');
-
         const data = await response.json();
         setLandmarks(data);
+        
+        const regions = Array.from(new Set(data.map((l: Landmark) => l.region)));
+        if (regions.length > 0) {
+          setOpenRegions({ [regions[0] as string]: true });
+        }
       } catch (error) {
-        console.error('랜드마크 데이터를 불러오는 중 오류 발생:', error);
+        console.error('데이터 로드 실패:', error);
       }
     };
-
     fetchLandmarks();
   }, [currentUserId]);
 
-  const culturalSites = landmarks; // 전체 데이터
-  const collectedStamps = landmarks.filter(site => site.stampCollected); // 수집한 데이터
+  // 💡 데이터를 지역별로 그룹화
+  const groupedData = useMemo(() => {
+    return landmarks.reduce((acc, landmark) => {
+      const { region } = landmark;
+      if (!acc[region]) acc[region] = [];
+      acc[region].push(landmark);
+      return acc;
+    }, {} as Record<string, Landmark[]>);
+  }, [landmarks]);
 
-  const totalSites = culturalSites.length || 1;
-  const collectedCount = collectedStamps.length;
-  const completionRate = Math.round((collectedCount / totalSites) * 100);
+  const regions = Object.keys(groupedData).sort();
+  const collectedCount = landmarks.filter(l => l.stampCollected).length;
+  const completionRate = Math.round((collectedCount / (landmarks.length || 1)) * 100);
+
+  // 💡 완료된 지역 계산 (수집률 80% 이상)
+  const completedRegionsCount = useMemo(() => {
+    return regions.filter(region => {
+      const regionLandmarks = groupedData[region];
+      const regionCollected = regionLandmarks.filter(l => l.stampCollected).length;
+      const regionRate = (regionCollected / regionLandmarks.length) * 100;
+      return regionRate >= 80; // 80% 기준
+    }).length;
+  }, [groupedData, regions]);
+
+  const toggleRegion = (region: string) => {
+    setOpenRegions(prev => ({ ...prev, [region]: !prev[region] }));
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-6">
-        <h1 className="text-2xl font-bold mb-2">스탬프 컬렉션</h1>
-        <p className="text-purple-100">내가 모은 문화재 스탬프</p>
+    <div className="min-h-screen bg-gray-50 pb-24 font-sans">
+      
+      {/* 🟣 상단 헤더: 완료한 지역 통계 적용 */}
+      <div className="bg-gradient-to-br from-purple-700 to-indigo-800 text-white p-8 rounded-b-[2.5rem] shadow-xl">
+        <div className="mb-6 text-center">
+          <h1 className="text-2xl font-black tracking-tight mb-1">나의 스탬프 북</h1>
+          <p className="text-purple-200 text-sm opacity-80">80% 이상 수집 시 지역 완료!</p>
+        </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-3 mt-4">
-          <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3 text-center">
-            <Star className="w-5 h-5 mx-auto mb-1 fill-current" />
-            <div className="text-xl font-bold">{collectedCount}</div>
-            <div className="text-xs text-purple-100">수집</div>
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/10 text-center">
+            <div className="text-2xl font-black text-yellow-300">{collectedCount}</div>
+            <div className="text-[10px] text-purple-100 font-bold uppercase">전체 스탬프</div>
           </div>
-          <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3 text-center">
-            <Award className="w-5 h-5 mx-auto mb-1" />
-            <div className="text-xl font-bold">{completionRate}%</div>
-            <div className="text-xs text-purple-100">달성률</div>
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/10 text-center">
+            <div className="text-2xl font-black">{completionRate}%</div>
+            <div className="text-[10px] text-purple-100 font-bold uppercase">전체 달성률</div>
           </div>
-          <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3 text-center">
-            <Calendar className="w-5 h-5 mx-auto mb-1" />
-            <div className="text-xl font-bold">{totalSites - collectedCount}</div>
-            <div className="text-xs text-purple-100">남은 스탬프</div>
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/10 text-center ring-2 ring-emerald-400/50">
+            <div className="text-2xl font-black text-emerald-400">{completedRegionsCount}</div>
+            <div className="text-[10px] text-purple-100 font-bold uppercase">완료한 지역</div>
           </div>
         </div>
       </div>
 
-      {/* Stamp Grid */}
-      <div className="p-4">
-        <h2 className="font-bold text-lg mb-4">수집한 스탬프 ({collectedCount})</h2>
-        <div className="grid grid-cols-2 gap-4 mb-8">
-          {collectedStamps.map((stamp) => (
-            <Card key={stamp.id} className="overflow-hidden">
-              <div className="relative">
-                <img
-                  src={stamp.image_url}
-                  alt={stamp.name}
-                  className="w-full h-32 object-cover"
-                />
-                <Badge className="absolute top-2 right-2 bg-purple-600">
-                  <Star className="w-3 h-3 mr-1 fill-current" />
-                  수집완료
-                </Badge>
-              </div>
-              <CardContent className="p-3">
-                <h3 className="font-bold text-sm mb-1">{stamp.name}</h3>
-                <div className="flex items-center text-xs text-gray-500">
-                  <Calendar className="w-3 h-3 mr-1" />
-                  {stamp.collectedAt ? new Date(stamp.collectedAt).toLocaleDateString('ko-KR') : '-'}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+      {/* 🗺️ 지역별 리스트 섹션 */}
+      <div className="p-5 mt-4 space-y-4">
+        {regions.map((region) => {
+          const regionLandmarks = groupedData[region];
+          const regionCollected = regionLandmarks.filter(l => l.stampCollected).length;
+          const regionRate = Math.round((regionCollected / regionLandmarks.length) * 100);
+          const isCompleted = regionRate >= 80; // 💡 80% 완료 여부
+          const isOpen = openRegions[region];
 
-        {/* Uncollected Stamps */}
-        <h2 className="font-bold text-lg mb-4">미수집 스탬프</h2>
-        <div className="grid grid-cols-2 gap-4">
-          {culturalSites
-            .filter(site => !site.stampCollected)
-            .map((site) => (
-              <Card key={site.id} className="overflow-hidden opacity-60">
-                <div className="relative">
-                  <img
-                    src={site.image_url}
-                    alt={site.name}
-                    className="w-full h-32 object-cover grayscale"
-                  />
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                    <div className="text-white text-center">
-                      <Star className="w-8 h-8 mx-auto mb-1" />
-                      <div className="text-xs">미수집</div>
+          return (
+            <div key={region} className={`bg-white rounded-3xl shadow-sm border overflow-hidden transition-all ${isCompleted ? 'border-emerald-200 ring-1 ring-emerald-100' : 'border-gray-100'}`}>
+              
+              {/* 지역 헤더 */}
+              <button 
+                onClick={() => toggleRegion(region)}
+                className={`w-full flex items-center justify-between p-5 transition-colors ${isOpen ? (isCompleted ? 'bg-emerald-50/50' : 'bg-purple-50/50') : 'bg-white'}`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${isCompleted ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-400'}`}>
+                    {isCompleted ? <CheckCircle2 className="w-6 h-6" /> : <MapPin className="w-5 h-5" />}
+                  </div>
+                  <div className="text-left">
+                    <div className="flex items-center gap-1">
+                      <h3 className={`font-bold ${isCompleted ? 'text-emerald-700' : 'text-gray-800'}`}>{region}</h3>
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                       <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full transition-all duration-1000 ${isCompleted ? 'bg-emerald-500' : 'bg-purple-500'}`} 
+                            style={{ width: `${regionRate}%` }}
+                          ></div>
+                       </div>
+                       <p className={`text-[10px] font-bold ${isCompleted ? 'text-emerald-600' : 'text-gray-400'}`}>
+                         {regionRate}% ({regionCollected}/{regionLandmarks.length})
+                       </p>
                     </div>
                   </div>
                 </div>
-                <CardContent className="p-3">
-                  <h3 className="font-bold text-sm mb-1">{site.name}</h3>
-                  <div className="text-xs text-gray-500">
-                    {site.distance}km 거리
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-        </div>
+                <div className="flex items-center gap-2">
+                  {isCompleted && (
+                    <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none px-2 py-0.5 font-bold text-[10px]">완료됨</Badge>
+                  )}
+                  {isOpen ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
+                </div>
+              </button>
+
+              {/* 그리드 내용 */}
+              {isOpen && (
+                <div className="p-4 grid grid-cols-2 gap-3 bg-white border-t border-gray-50 animate-in fade-in slide-in-from-top-2 duration-300">
+                  {regionLandmarks.map((item) => (
+                    <Card key={item.id} className={`overflow-hidden border-none shadow-sm rounded-2xl relative ${!item.stampCollected && 'opacity-60 grayscale-[0.5]'}`}>
+                      <div className="relative h-28">
+                        <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+                        {item.stampCollected && (
+                          <div className="absolute top-2 right-2">
+                            <Badge className="bg-purple-600 border-none p-1"><Star className="w-3 h-3 fill-current text-white" /></Badge>
+                          </div>
+                        )}
+                      </div>
+                      <CardContent className="p-3">
+                        <h4 className={`font-bold text-[11px] truncate ${item.stampCollected ? 'text-gray-800' : 'text-gray-400'}`}>
+                          {item.name}
+                        </h4>
+                        <p className="text-[9px] text-gray-400 mt-0.5">
+                          {item.stampCollected ? '수집됨' : '미방문'}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
+
     </div>
   );
 }

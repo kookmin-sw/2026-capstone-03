@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Map, MapMarker, Polygon } from 'react-kakao-maps-sdk';
 
-// 💡 1. 부모(Home)와 동일한 타입 정의
+// 1. 타입 정의
 export interface Landmark {
   id: string;
   name: string;
@@ -12,186 +12,185 @@ export interface Landmark {
   stampCollected: boolean;
 }
 
-interface RegionStampData {
-  total: number;
-  collected: number;
-}
-
-type RegionStamps = Record<string, RegionStampData>;
-
-// 💡 2. 부모(Home)에게서 받을 데이터(Props) 타입 정의
 interface MapBoardProps {
   landmarks: Landmark[];
   onStampSuccess: (id: string) => void;
   currentUserId: string;
 }
 
-const GYEONGGI_POLYGON_PATH = [
-  { lat: 37.3, lng: 126.8 },
-  { lat: 37.4, lng: 127.1 },
-  { lat: 37.2, lng: 127.2 }
-];
+// 2. Convex Hull(볼록 껍질) 알고리즘
+// 점들을 모두 포함하는 가장 바깥쪽 테두리 좌표만 추출합니다.
+function getConvexHull(points: { lat: number; lng: number }[]) {
+  if (points.length < 3) return points;
 
-// 💡 3. 매개변수(Props)로 landmarks, onStampSuccess, currentUserId 받아오기
+  const sorted = [...points].sort((a, b) => a.lng !== b.lng ? a.lng - b.lng : a.lat - b.lat);
+
+  const crossProduct = (a: any, b: any, c: any) => {
+    return (b.lng - a.lng) * (c.lat - a.lat) - (b.lat - a.lat) * (c.lng - a.lng);
+  };
+
+  const lower: { lat: number; lng: number }[] = [];
+  for (let p of sorted) {
+    while (lower.length >= 2 && crossProduct(lower[lower.length - 2], lower[lower.length - 1], p) <= 0) {
+      lower.pop();
+    }
+    lower.push(p);
+  }
+
+  const upper: { lat: number; lng: number }[] = [];
+  for (let i = sorted.length - 1; i >= 0; i--) {
+    let p = sorted[i];
+    while (upper.length >= 2 && crossProduct(upper[upper.length - 2], upper[upper.length - 1], p) <= 0) {
+      upper.pop();
+    }
+    upper.push(p);
+  }
+
+  lower.pop();
+  upper.pop();
+  return lower.concat(upper);
+}
+
 export default function MapBoard({ landmarks, onStampSuccess, currentUserId }: MapBoardProps) {
   const [selectedLandmark, setSelectedLandmark] = useState<Landmark | null>(null);
   const [myLocation, setMyLocation] = useState({ lat: 37.5665, lng: 126.9780 });
 
-  const [regionStamps, setRegionStamps] = useState<RegionStamps>({
-    '경기도': { total: 10, collected: 6 },
-    '서울특별시': { total: 5, collected: 1 },
-  });
+  // 3. 데이터 가공 (지역별 그룹화 및 통계)
+  const groupedPathByRegion = useMemo(() => {
+    return landmarks
+      .filter(lm => lm.stampCollected)
+      .reduce((acc, lm) => {
+        if (!acc[lm.region]) acc[lm.region] = [];
+        acc[lm.region].push({ lat: lm.lat, lng: lm.lng });
+        return acc;
+      }, {} as Record<string, { lat: number; lng: number }[]>);
+  }, [landmarks]);
 
-  // URL 파라미터 확인 후 획득 알림 띄우기 (카메라 찍고 돌아왔을 때 등)
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const stampEarned = params.get('stampEarned');
-    const landmarkName = params.get('name');
+  const regionStats = useMemo(() => {
+    const stats: Record<string, { total: number; collected: number }> = {};
+    landmarks.forEach(lm => {
+      if (!stats[lm.region]) stats[lm.region] = { total: 0, collected: 0 };
+      stats[lm.region].total += 1;
+      if (lm.stampCollected) stats[lm.region].collected += 1;
+    });
+    return stats;
+  }, [landmarks]);
 
-    if (stampEarned === '1') {
-      alert(`${landmarkName ?? '문화재'} 스탬프 획득 성공! 🏆`);
+  const currentRegionStat = selectedLandmark ? regionStats[selectedLandmark.region] : null;
 
-      params.delete('stampEarned');
-      params.delete('name');
-
-      const newQuery = params.toString();
-      const newUrl = `${window.location.pathname}${newQuery ? `?${newQuery}` : ''}`;
-      window.history.replaceState({}, '', newUrl);
-    }
-  }, []);
-
-  // 💡 4. 스탬프 찍기 함수 (API 호출 후 부모에게 알림)
+  // 4. 이벤트 핸들러
   const handleStamp = async (landmark: Landmark) => {
-    const isNear = true; // 나중에 GPS 로직 연동
-
-    if (!isNear) {
-      alert('랜드마크 근처로 더 이동해주세요!');
-      return;
-    }
-
-    if (!currentUserId) {
-      alert('로그인 정보가 없습니다.');
-      return;
-    }
-
+    if (!currentUserId) return alert('로그인이 필요합니다.');
     try {
       const response = await fetch('http://localhost:5000/api/stamps', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: currentUserId, landmarkId: landmark.id }),
       });
-
       if (response.ok) {
-        alert('스탬프 찍기 완료!');
-
+        alert(`${landmark.name} 스탬프 획득! 🏆`);
         onStampSuccess(landmark.id);
-
-        // 현재 열려있는 모달창의 상태도 '수집완료'로 변경
         setSelectedLandmark(prev => prev ? { ...prev, stampCollected: true } : null);
-
-      } else if (response.status === 409) {
-        alert('이미 획득한 스탬프입니다!');
-      } else {
-        alert('스탬프 저장에 실패했습니다.');
       }
-    } catch (error) {
-      console.error('스탬프 저장 통신 에러:', error);
-    }
-  };
-
-  const handleDirections = (landmark: Landmark) => {
-    const url = `https://map.kakao.com/link/to/${landmark.name},${landmark.lat},${landmark.lng}`;
-    window.open(url, '_blank');
-  };
-
-  const handleNearbyFood = (landmark: Landmark) => {
-    alert(`${landmark.name} 주변 1km 맛집을 검색합니다.`);
-  };
-
-  const getPolygonColor = (regionName: string): string => {
-    const data = regionStamps[regionName];
-    if (!data) return '#888888';
-
-    const percent = (data.collected / data.total) * 100;
-    if (percent >= 50) return '#FF5E00';
-    return '#A9E2F3';
+    } catch (e) { console.error(e); }
   };
 
   return (
-      <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-        <Map
-            center={myLocation}
-            style={{ width: '100%', height: '100%' }}
-            level={10}
-        >
-          <Polygon
-              path={GYEONGGI_POLYGON_PATH}
-              strokeWeight={2}
-              strokeColor={'#004c80'}
-              strokeOpacity={0.8}
-              fillColor={getPolygonColor('경기도')}
-              fillOpacity={0.6}
-          />
-
-          {/* 부모에게서 받은 landmarks 배열을 순회하며 마커 찍기 */}
-          {landmarks.map((landmark) => (
-              <MapMarker
-                  key={landmark.id}
-                  position={{ lat: landmark.lat, lng: landmark.lng }}
-                  onClick={() => setSelectedLandmark(landmark)}
+    <div style={{ width: '100%', minHeight: '100vh', backgroundColor: '#f9f9f9', fontFamily: 'sans-serif' }}>
+      
+      {/* 지도 컨테이너 (높이 2/3) */}
+      <div style={{ width: '100%', height: '66vh', position: 'relative', overflow: 'hidden' }}>
+        <Map center={myLocation} style={{ width: '100%', height: '100%' }} level={11}>
+          
+          {/* 볼록 껍질 기반 다각형 */}
+          {Object.entries(groupedPathByRegion).map(([region, paths]) => (
+            paths.length >= 3 && (
+              <Polygon
+                key={region}
+                path={getConvexHull(paths)}
+                strokeWeight={3}
+                strokeColor={'#FF5E00'}
+                fillColor={'#FF9500'}
+                fillOpacity={0.4}
               />
+            )
+          ))}
+
+          {/* 마커 */}
+          {landmarks.map((landmark) => (
+            <MapMarker
+              key={landmark.id}
+              position={{ lat: landmark.lat, lng: landmark.lng }}
+              onClick={() => setSelectedLandmark(landmark)}
+              image={{
+                src: landmark.stampCollected 
+                  ? "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png" 
+                  : "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png",
+                size: { width: 24, height: 35 }
+              }}
+            />
           ))}
         </Map>
 
+        {/* 하단 일체형 정보창 (지도 하단에 배치) */}
         {selectedLandmark && (
-            <div style={modalStyle}>
-              <img
-                  src={selectedLandmark.image_url}
-                  alt={selectedLandmark.name}
-                  style={imageStyle}
-              />
-              <h3>{selectedLandmark.name}</h3>
-              <p>지역: {selectedLandmark.region}</p>
-
-              <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
-                <button onClick={() => handleDirections(selectedLandmark)}>📍 길찾기</button>
-                {/* 이미 획득한 스탬프면 버튼을 비활성화하고 텍스트 변경 */}
-                {selectedLandmark.stampCollected ? (
-                    <button disabled style={{ backgroundColor: '#ccc', cursor: 'not-allowed' }}>⭐ 수집완료</button>
-                ) : (
-                    <button onClick={() => handleStamp(selectedLandmark)}>🏆 스탬프</button>
-                )}
-                <button onClick={() => handleNearbyFood(selectedLandmark)}>🍜 맛집</button>
+          <div style={combinedContainerStyle}>
+            {/* 1. 지역 진척도 바 */}
+            {currentRegionStat && (
+              <div style={compactDashboardStyle}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '5px' }}>
+                  <span style={{ fontWeight: 'bold' }}>📍 {selectedLandmark.region}</span>
+                  <span style={{ color: '#FF5E00', fontWeight: 'bold' }}>{currentRegionStat.collected}/{currentRegionStat.total} 완수</span>
+                </div>
+                <div style={progressBgStyle}>
+                  <div style={{ 
+                    ...progressFillStyle, 
+                    width: `${(currentRegionStat.collected / currentRegionStat.total) * 100}%`,
+                    backgroundColor: currentRegionStat.collected >= 3 ? '#FF5E00' : '#A9E2F3' 
+                  }} />
+                </div>
               </div>
+            )}
 
-              <button
-                  style={{ marginTop: '10px', width: '100%' }}
-                  onClick={() => setSelectedLandmark(null)}
-              >
-                닫기
-              </button>
+            {/* 2. 랜드마크 상세 카드 */}
+            <div style={compactModalStyle}>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                <img src={selectedLandmark.image_url} alt={selectedLandmark.name} style={imageStyle} />
+                <div style={{ flex: 1 }}>
+                  <h3 style={{ margin: '0 0 8px 0', fontSize: '1rem', letterSpacing: '-0.5px' }}>{selectedLandmark.name}</h3>
+                  <div style={{ display: 'flex', gap: '5px' }}>
+                    <button style={miniBtnStyle} onClick={() => window.open(`https://map.kakao.com/link/to/${selectedLandmark.name},${selectedLandmark.lat},${selectedLandmark.lng}`)}>📍 길찾기</button>
+                    <button style={miniBtnStyle} onClick={() => window.open(`https://map.kakao.com/link/search/${selectedLandmark.name} 맛집`)}>🍜 맛집</button>
+                  </div>
+                </div>
+              </div>
+              
+              <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                {selectedLandmark.stampCollected ? (
+                  <button style={{ ...actionBtnStyle, backgroundColor: '#eee', color: '#888', flex: 2 }} disabled>⭐ 수집 완료</button>
+                ) : (
+                  <button style={{ ...actionBtnStyle, backgroundColor: '#FF5E00', color: '#fff', flex: 2 }} onClick={() => handleStamp(selectedLandmark)}>🏆 스탬프 찍기</button>
+                )}
+                <button style={{ ...actionBtnStyle, flex: 1, background: '#fff', border: '1px solid #ddd' }} onClick={() => setSelectedLandmark(null)}>닫기</button>
+              </div>
             </div>
+          </div>
         )}
       </div>
+
+      <div style={{ padding: '25px', textAlign: 'center', color: '#999', fontSize: '0.85rem' }}>
+        마커를 클릭해 랜드마크를 확인하고 영역을 넓혀보세요! 🏯
+      </div>
+    </div>
   );
 }
 
-const modalStyle: React.CSSProperties = {
-  position: 'absolute',
-  bottom: '50px',
-  left: '50%',
-  transform: 'translateX(-50%)',
-  backgroundColor: 'white',
-  padding: '20px',
-  borderRadius: '10px',
-  boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-  zIndex: 10,
-  width: '300px',
-};
-const imageStyle: React.CSSProperties = {
-  width: '100%',
-  height: '180px',
-  objectFit: 'cover',
-  borderRadius: '8px',
-  marginBottom: '15px',
-};
+// 5. 스타일 정의
+const combinedContainerStyle: React.CSSProperties = { position: 'absolute', bottom: '15px', left: '50%', transform: 'translateX(-50%)', width: '92%', maxWidth: '360px', zIndex: 10, display: 'flex', flexDirection: 'column', gap: '8px' };
+const compactDashboardStyle: React.CSSProperties = { backgroundColor: 'rgba(255, 255, 255, 0.95)', padding: '10px 12px', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.3)' };
+const compactModalStyle: React.CSSProperties = { backgroundColor: 'white', padding: '12px', borderRadius: '18px', boxShadow: '0 8px 24px rgba(0,0,0,0.15)' };
+const imageStyle: React.CSSProperties = { width: '75px', height: '75px', objectFit: 'cover', borderRadius: '10px' };
+const progressBgStyle: React.CSSProperties = { width: '100%', height: '5px', background: '#e0e0e0', borderRadius: '3px', overflow: 'hidden' };
+const progressFillStyle: React.CSSProperties = { height: '100%', transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)' };
+const actionBtnStyle: React.CSSProperties = { padding: '11px', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.8rem' };
+const miniBtnStyle: React.CSSProperties = { padding: '6px 10px', border: '1px solid #eee', borderRadius: '6px', background: '#f8f9fa', fontSize: '0.7rem', cursor: 'pointer', fontWeight: '500' };
