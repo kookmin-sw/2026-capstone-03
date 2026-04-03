@@ -4,7 +4,8 @@
 
 ### 0. DB 설정
 
-`DB_p/db3.sql` 실행하여 db 구축
+mysql bench 실행
+`DB_p/db.sql` 실행하여 db 구축
 
 ### 1️. 사이트 실행
 
@@ -12,12 +13,11 @@
 
 **1. 패키지 설치**
 
-터미널을 열고 아래 명령어들을 실행.
+cmd터미널을 열고 아래 명령어들을 실행.
 
 ```bash
 npm install
 npm install react-kakao-maps-sdk
-npm install axios
 ```
 
 **2. 환경 변수 (.env) 설정**
