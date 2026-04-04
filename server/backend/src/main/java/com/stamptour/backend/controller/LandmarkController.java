@@ -16,7 +16,7 @@ public class LandmarkController {
     private final LandmarkService landmarkService;
 
     @GetMapping
-    public List<LandmarkDTO> getLandmarks(@RequestParam String userId) {
+    public List<LandmarkDTO> getLandmarks(@RequestParam("userId") String userId) {
         return landmarkService.getLandmarksWithStampInfo(userId);
     }
 }
