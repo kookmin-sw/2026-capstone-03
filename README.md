@@ -5,6 +5,7 @@
 ### 0. 기본 설정
 
 * **Java 17** 설치
+* (vs code의 경우) Extensions에서 Spring Boot Extension Pack 설치
 * **MySQL** 설치 및 실행 (포트: 3306, 스키마명: `stamp_tour`)
 * `DB_p/db.sql` 실행하여 db 구축
 * **VS Code 확장 프로그램 (Extensions) 설치:**
@@ -43,7 +44,7 @@ npm run dev
 
 * 백 - 다음 두 가지 방법 중 편한 방법을 선택해서 실행
 
-* 방법 A (UI 사용 - 추천): VS Code 좌측 메뉴(또는 하단 패널)의 Spring Boot Dashboard 탭을 열고, backend (또는 BackendApplication) 옆의 재생(▶️) 버튼을 클릭합니다.
+* 방법 A (UI 사용 - 추천): VS Code 좌측 메뉴(또는 하단 패널)의 Spring Boot Dashboard 탭을 열고, `server/backend/src/main/java/com/stamptour/backend/BackendApplication.java` 실행
 
 * 방법 B (터미널 사용): VS Code 터미널을 열고 아래 명령어를 입력합니다.
 ```bash
