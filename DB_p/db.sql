@@ -60,15 +60,15 @@ CREATE TABLE gifts (
 );
 
 
---초기 데이터 삽입
+-- 초기 데이터 삽입
 
---user
+-- user
 INSERT INTO users (id, name, avatar, provider) VALUES
                                                    ('test_user_1', '김민수', '👤', 'kakao'),
                                                    ('test_user_2', '이지은', '👤', 'naver'),
                                                    ('test_user_3', '박서준', '👤', 'google');
 
---landmark
+-- landmark
 INSERT INTO landmarks (id, name, description, image_url, lat, lng, region, category) VALUES
                                                                                          ('1', '경복궁', '조선왕조의 정궁으로 1395년에 창건된 궁궐', 'https://images.unsplash.com/photo-1644380031300-2af18adec01c?q=80&w=1080', 37.5788, 126.9770, '서울특별시', '궁궐'),
                                                                                          ('2', '조계사', '대한불교조계종의 총본산으로 도심 속 전통 사찰', 'https://images.unsplash.com/photo-1662527982815-1f2d12d183aa?q=80&w=1080', 37.5717, 126.9816, '서울특별시', '사찰'),
@@ -150,7 +150,7 @@ INSERT INTO landmarks (id, name, description, image_url, lat, lng, region, categ
 																						('78', '남해 독일마을', '독일 파견 간호사와 광부들이 귀국하여 정착한 이색 마을', 'https://images.unsplash.com/photo-1596404988775-6900f9547d95?q=80&w=1080', 34.8012, 128.0123, '경상남도', '이색마을'),
 																						('79', '문경새재 도립공원', '영남 선비들이 과거 보러 가던 유서 깊은 고갯길', 'https://images.unsplash.com/photo-1632733796839-84724a275e7a?q=80&w=1080', 36.7654, 128.0765, '경상북도', '역사유적/자연'),
 																						('80', '서귀포 천지연폭포', '하늘과 땅이 만나서 이룬 연못이라는 이름의 수려한 폭포', 'https://images.unsplash.com/photo-1612977437034-483a02fa5531?q=80&w=1080', 33.2456, 126.5543, '제주도', '자연/폭포');
---review
+-- review
 INSERT INTO reviews (user_id, landmark_id, rating, comment) VALUES
                                                                 ('test_user_1', '1', 5, '정말 아름다운 궁궐입니다. 특히 경회루의 야경이 멋있어요!'),
                                                                 ('test_user_2', '1', 4, '관람객이 많아서 조금 복잡했지만 볼거리가 정말 많습니다.'),
