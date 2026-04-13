@@ -8,20 +8,18 @@ import threading
 import time   
 
 class ImageMatcher:
-    def __init__(self, img_dir="img", target_filename="tar.png", guide_filename="guide_overlay.png", emb_filename="target_emb.pt", match_threshold=0.75):
+    def __init__(self, img_dir="img", emb_dir='reference_embedding', guide_filename="guide_yongdu.png", emb_filename="1.pt", match_threshold=0.75):
         
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         
-        self.img_dir = img_dir
-        self.target_path = os.path.join(self.img_dir, target_filename)
-        self.guide_path = os.path.join(self.img_dir, guide_filename)
-        self.emb_path = os.path.join(self.img_dir, emb_filename)
+        self.guide_path = os.path.join(img_dir, guide_filename)
+        self.emb_path = os.path.join(emb_dir, emb_filename)
         self.match_threshold = match_threshold
 
         self.model = None
         self.processor = None
-        self.target_emb = None
         self.guide_img = None
+        self.emb = None
 
         self.is_model_loaded = False
         
@@ -36,24 +34,13 @@ class ImageMatcher:
         self.load_embedding()
         self.is_model_loaded = True
 
-    def generate_and_save_embedding(self):
-        if not os.path.exists(self.target_path): raise FileNotFoundError(f"파일 없음: {self.target_path}")
-        original_img = Image.open(self.target_path)
-
-        subjects_only_img = remove(original_img)
-        subjects_only_img.save(os.path.join(self.img_dir, "tar_no_bg.png"))
-        inputs = self.processor(images=subjects_only_img.convert("RGB"), return_tensors="pt").to(self.device)
-        with torch.no_grad():
-            target_features = self.model.get_image_features(**inputs)
-            if hasattr(target_features, "pooler_output"): target_features = target_features.pooler_output
-        self.target_emb = target_features / target_features.norm(dim=-1, keepdim=True)
-        torch.save(self.target_emb, self.emb_path)
-
     def load_embedding(self):
         if not os.path.exists(self.emb_path):
-            self.generate_and_save_embedding()
+            raise FileNotFoundError(f"Embedding file not found: {self.emb_path}")
         else:
-            self.target_emb = torch.load(self.emb_path, map_location=self.device, weights_only=True)
+            self.emb = torch.load(self.emb_path, map_location=self.device)
+        if not isinstance(self.emb, torch.Tensor):
+            raise TypeError(f"Loaded embedding is not a tensor. Got: {type(self.emb)}")
 
     def load_guide_image(self):
         if not os.path.exists(self.guide_path):
@@ -64,7 +51,10 @@ class ImageMatcher:
     def apply_guide_overlay(self, camera_frame, progress=0.0):
         if self.guide_img is None: return camera_frame.copy()
         h, w, _ = camera_frame.shape
-        resized_guide = cv2.resize(self.guide_img, (w, h), interpolation=cv2.INTER_AREA)
+
+        cropped_guide = self.center_crop_to_aspect(self.guide_img, w, h)
+        resized_guide = cv2.resize(cropped_guide, (w, h), interpolation=cv2.INTER_AREA)
+        #resized_guide = self.guide_img
         guide_rgb = resized_guide[:, :, :3]
         alpha_channel = resized_guide[:, :, 3] / 255.0  
         base_alpha = 0.25
@@ -77,6 +67,24 @@ class ImageMatcher:
             result_frame[:, :, c] = (camera_frame[:, :, c] * (1.0 - adjusted_alpha) + guide_rgb[:, :, c] * adjusted_alpha)
         return result_frame
 
+    def center_crop_to_aspect(self, img, target_w, target_h):
+        h, w = img.shape[:2]
+        target_ratio = target_w / target_h
+        current_ratio = w / h
+
+        if current_ratio > target_ratio:
+            # Image is wider → crop width
+            new_w = int(h * target_ratio)
+            x_start = (w - new_w) // 2
+            cropped = img[:, x_start:x_start + new_w]
+        else:
+            # Image is taller → crop height
+            new_h = int(w / target_ratio)
+            y_start = (h - new_h) // 2
+            cropped = img[y_start:y_start + new_h, :]
+
+        return cropped
+
     def calculate_similarity(self, frame): 
         img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         pil_img = Image.fromarray(img_rgb)
@@ -86,7 +94,7 @@ class ImageMatcher:
             if hasattr(outputs, "pooler_output"): curr_features = outputs.pooler_output
             else: curr_features = outputs 
             curr_features = curr_features / curr_features.norm(dim=-1, keepdim=True)
-        return (curr_features @ self.target_emb.T).item()
+        return (curr_features @ self.emb.T).item()
 
     def _on_success_triggered(self):
         print("\n 3초 유지 성공")
@@ -97,7 +105,7 @@ class ImageMatcher:
             loading_thread = threading.Thread(target=self._load_model_async, daemon=True)
             loading_thread.start()
 
-            cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+            cap = cv2.VideoCapture(0)
             if not cap.isOpened(): raise Exception("카메라 없음")
 
             print("'q': 종료, 'r': 성공 상태 초기화(재시도)")
@@ -105,7 +113,9 @@ class ImageMatcher:
             frame_count = 0
             score = 0.0
             is_match = False
-            progress = 0.0 
+            progress = 0.0
+            status_text = "Starting..."
+            color = None
 
             while True:
                 ret, frame = cap.read()
