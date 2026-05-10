@@ -20,9 +20,9 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final RestTemplate restTemplate = new RestTemplate();
-    private final ObjectMapper objectMapper = new ObjectMapper(); // 🌟 JSON 파싱을 위한 마법사 추가!
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    // 🟡 카카오 로그인
+    // 카카오 로그인
     public User kakaoLogin(String code) throws Exception {
         // 토큰 발급 요청
         HttpHeaders headers = new HttpHeaders();
@@ -37,7 +37,7 @@ public class AuthService {
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
 
         ResponseEntity<String> tokenResponse = restTemplate.postForEntity("https://kauth.kakao.com/oauth/token", request, String.class);
-        JsonNode tokenNode = objectMapper.readTree(tokenResponse.getBody()); // 🌟 우리가 직접 JSON으로 해석!
+        JsonNode tokenNode = objectMapper.readTree(tokenResponse.getBody());
         String accessToken = tokenNode.get("access_token").asText();
 
         // 유저 정보 조회
@@ -59,7 +59,7 @@ public class AuthService {
         return saveOrUpdateUser(id, name, email, avatar, "kakao");
     }
 
-    // 🟢 네이버 로그인
+    // 네이버 로그인
     public User naverLogin(String code, String state) throws Exception {
         String tokenUrl = String.format("https://nid.naver.com/oauth2.0/token?grant_type=authorization_code&client_id=%s&client_secret=%s&code=%s&state=%s",
                 "OU5On9cK56h1zUDeUaAe", "h5WeC06E1q", code, state);
@@ -83,7 +83,7 @@ public class AuthService {
         return saveOrUpdateUser(id, name, email, avatar, "naver");
     }
 
-    // 🔴 구글 로그인
+    // 구글 로그인
     public User googleLogin(String code) throws Exception {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -116,7 +116,6 @@ public class AuthService {
         return saveOrUpdateUser(id, name, email, avatar, "google");
     }
 
-    // 💾 공통 DB 저장 로직 (Upsert)
     private User saveOrUpdateUser(String id, String name, String email, String avatar, String provider) {
         User user = userRepository.findById(id).orElse(new User());
 
