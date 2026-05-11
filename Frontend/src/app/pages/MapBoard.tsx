@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Map, MapMarker, Polygon } from 'react-kakao-maps-sdk';
+import { useNavigate } from 'react-router';
 
 // 랜드마크 정의
 export interface Landmark {
@@ -53,6 +54,8 @@ function getConvexHull(points: { lat: number; lng: number }[]) {
 }
 // 컴포넌트 전달
 export default function MapBoard({ landmarks, onStampSuccess, currentUserId }: MapBoardProps) {
+  const navigate = useNavigate();
+  
   const [selectedLandmark, setSelectedLandmark] = useState<Landmark | null>(null);
   // 지도 중심 위도/경도
   const [myLocation, setMyLocation] = useState({ lat: 37.5665, lng: 126.9780 });
@@ -80,24 +83,12 @@ export default function MapBoard({ landmarks, onStampSuccess, currentUserId }: M
 
   const currentRegionStat = selectedLandmark ? regionStats[selectedLandmark.region] : null;
 
-  // 스탬프 버튼 이벤트
   const handleStamp = async (landmark: Landmark) => {
     if (!currentUserId) return alert('로그인이 필요합니다.');
-    try {
-      const response = await fetch('http://localhost:5000/api/stamps', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: currentUserId, landmarkId: landmark.id }),
-      });
-      //성공 시
-      if (response.ok) {
-        alert(`${landmark.name} 스탬프 획득! 🏆`);
-        onStampSuccess(landmark.id);
-        setSelectedLandmark(prev => prev ? { ...prev, stampCollected: true } : null);
-      }
-    } catch (e) { console.error(e); }
-  };
-  // 전체 화면
+    //카메라 페이지로 이동하면서 랜드마크 ID와 이름을 파라미터로 전달
+    navigate(`/camera?id=${landmark.id}&name=${encodeURIComponent(landmark.name)}`);
+    };
+
   return (
     <div style={{ width: '100%', minHeight: '100vh', backgroundColor: '#f9f9f9', fontFamily: 'sans-serif' }}>
       
