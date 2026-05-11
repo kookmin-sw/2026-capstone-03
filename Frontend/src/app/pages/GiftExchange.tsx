@@ -34,7 +34,13 @@ export function GiftExchange() {
 
     const fetchMyStamps = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/landmarks?userId=${currentUserId}`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`http://localhost:5000/api/landmarks`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}` // "저 정상 로그인 유저입니다!" 증명
+            }
+        });
         if (!response.ok) throw new Error('데이터 로드 실패');
         const data = await response.json();
         const count = data.filter((item: any) => item.stampCollected).length;

@@ -43,6 +43,9 @@ export function NaverCallback() {
             const data = await response.json();
             console.log('백엔드에서 처리 후 받은 응답:', data);
 
+            // (수정)JWT 토큰 저장
+            localStorage.setItem('token', data.token);
+
             // 백엔드에서 준 유저 데이터를 로컬 스토리지에 저장
             localStorage.setItem('user', JSON.stringify({
                 ...data.user,

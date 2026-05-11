@@ -42,7 +42,10 @@ export function KakaoCallback() {
             const data = await response.json();
             console.log('백엔드에서 처리 후 받은 응답:', data);
 
-            // 백엔드에서 준 유저 데이터와 토큰을 저장 (기존 Login 로직과 동일)
+            // (수정)JWT 토큰 저장
+            localStorage.setItem('token', data.token);
+
+            // 백엔드에서 준 유저 데이터와 토큰을 저장
             localStorage.setItem('user', JSON.stringify({
                 ...data.user,
                 loginAt: new Date().toISOString()
