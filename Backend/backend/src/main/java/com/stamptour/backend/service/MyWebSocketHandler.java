@@ -24,8 +24,7 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
         } 
         else if (payload.contains("image") || payload.startsWith("data:image")) {
             this.browserSession = session; 
-            
-            // 파이썬이 연결되어 있다면 이미지 전달
+
             if (pythonSession != null && pythonSession.isOpen()) {
                 pythonSession.sendMessage(new TextMessage(payload));
             } else {

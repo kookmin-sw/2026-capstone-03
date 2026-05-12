@@ -1,19 +1,11 @@
-import asyncio
-import websockets
-import json
-import base64
-import torch
-import io
-import time
-import os
+import asyncio, json, base64, websockets, torch, io, os, time
 from PIL import Image
 from transformers import CLIPProcessor, CLIPModel
 
 class PersistentMatcher:
     def __init__(self):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-
-        print(f"[{time.strftime('%H:%M:%S')}] 모델 로드 중")
+        print(f"[{time.strftime('%H:%M:%S')}] 모델 로드 중)")
 
         self.model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(self.device)
         self.processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
@@ -22,31 +14,37 @@ class PersistentMatcher:
         self.img_dir = os.path.join(base_dir, "img") 
         self.emb_path = os.path.join(self.img_dir, "target_emb.pt")
         self.target_emb = torch.load(self.emb_path, map_location=self.device)
-        self.match_threshold = 0.75
+        self.match_threshold = 0.70
 
-        print(f"[{time.strftime('%H:%M:%S')}] AI 서버 준비 완료")
+        print(f"[{time.strftime('%H:%M:%S')}] 서버 준비 완료")
 
     async def run_forever(self):
         uri = "ws://localhost:5000/ws/python"
-        
-        while True: # 연결이 끊겨도 다시 시도
+        while True:
             try:
-                async with websockets.connect(uri, ping_interval=20, ping_timeout=20) as websocket:
-                    print("스프링 서버와 연결됨")
-
+                async with websockets.connect(uri, ping_interval=None, max_size=10 * 1024 * 1024) as websocket:
+                    print(f"[{time.strftime('%H:%M:%S')}] 백엔드 서버와 연결됨")
 
                     await websocket.send(json.dumps({
-                        "status": "Searching",
+                        "status": "서버연결 성공",
                         "score": 0,
                         "is_match": False
                     }))
                     
-                    self.match_start_time = None
                     while True:
+                        # 큐에 쌓인 메시지 중 가장 최신 것만 가져옴
                         message = await websocket.recv()
-                        data = json.loads(message)
                         
-                        # 영상 분석 
+                        try:
+                            while True:
+                                message = await asyncio.wait_for(websocket.recv(), timeout=0.01)
+                        except asyncio.TimeoutError:
+                            pass 
+
+                        data = json.loads(message)
+                        if 'image' not in data: continue
+                        
+                        # 영상 분석
                         img_data = base64.b64decode(data['image'].split(',')[1])
                         pil_img = Image.open(io.BytesIO(img_data)).convert("RGB")
                         
@@ -56,15 +54,19 @@ class PersistentMatcher:
                             features = features / features.norm(dim=-1, keepdim=True)
                         
                         score = (features @ self.target_emb.T).item()
-                        
-                        # 결과 전송
-                        await websocket.send(json.dumps({
-                            "score": score,
-                            "is_match": score > self.match_threshold
-                        }))
+                        is_match = score > self.match_threshold
 
+                        result = {
+                            "score": float(score),
+                            "status": "Holding" if is_match else "Searching", 
+                            "is_match": is_match
+                        }
+                        await websocket.send(json.dumps(result))
+                        
+                        print(f"[{time.strftime('%H:%M:%S')}] Score: {score:.4f} | Match: {is_match}")
+                        await asyncio.sleep(0.5)
             except Exception as e:
-                print(f" 연결 오류: {e}. 5초 후 재시도...")
+                print(f"[{time.strftime('%H:%M:%S')}] 연결 오류: {e} 재시도중")
                 await asyncio.sleep(5)
 
 if __name__ == "__main__":
