@@ -2,6 +2,7 @@ package com.stamptour.backend.controller;
 
 import com.stamptour.backend.entity.User;
 import com.stamptour.backend.service.AuthService;
+import com.stamptour.backend.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,7 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     // POST /api/auth/kakao
     @PostMapping("/kakao")
@@ -53,11 +55,15 @@ public class AuthController {
         }
     }
 
-    // JSON 형태로 포장하는 함수
     private ResponseEntity<Map<String, Object>> createSuccessResponse(String message, User user) {
         Map<String, Object> response = new HashMap<>();
         response.put("message", message);
-        response.put("user", user);
+        response.put("user", user); // 프론트가 닉네임과 프사를 쓸 수 있게 유저 정보 담기
+        
+        // DB에 저장된 유저 ID를 이용해 JWT 통행증을 만들고 응답에 같이 담아줌
+        String jwtToken = jwtTokenProvider.createToken(user.getId());
+        response.put("token", jwtToken);
+        
         return ResponseEntity.ok(response);
     }
 

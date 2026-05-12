@@ -43,14 +43,19 @@ export function Home() {
 
     const fetchLandmarks = async () => {
       try {
-        const response = await fetch(
-          `http://localhost:5000/api/landmarks?userId=${currentUserId}`
-        );
+        const token = localStorage.getItem('token');
+
+        const response = await fetch(`http://localhost:5000/api/landmarks`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
         if (!response.ok) throw new Error('네트워크 응답 에러');
 
         const data = await response.json();
 
-        // 🔥 stampCollected 없을 경우 기본값 false 보정
         setLandmarks(
           data.map((item: any) => ({
             ...item,

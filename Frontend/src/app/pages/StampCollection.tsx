@@ -34,15 +34,22 @@ export function StampCollection() {
   // 유저정보 저장 후 실행
   useEffect(() => {
     if (!currentUserId) return;
-    const fetchLandmarks = async () => {
+const fetchLandmarks = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/landmarks?userId=${currentUserId}`);
+        const token = localStorage.getItem('token');
+
+        const response = await fetch(`http://localhost:5000/api/landmarks`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
         const data = await response.json();
         setLandmarks(data);
-        // 중복제거 후 지역명만 저장 
+        
         const regions = Array.from(new Set(data.map((l: Landmark) => l.region)));
         if (regions.length > 0) {
-          // 시작 시 열어둘 지역 설정 현재 0번 인덱스
           setOpenRegions({ [regions[0] as string]: true });
         }
       } catch (error) {

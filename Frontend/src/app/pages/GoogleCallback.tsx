@@ -40,6 +40,9 @@ export function GoogleCallback() {
             const data = await response.json();
             console.log('백엔드에서 처리 후 받은 응답:', data);
 
+            // (수정)JWT 토큰 저장
+            localStorage.setItem('token', data.token);
+
             // 유저 데이터 저장
             localStorage.setItem('user', JSON.stringify({
                 ...data.user,
