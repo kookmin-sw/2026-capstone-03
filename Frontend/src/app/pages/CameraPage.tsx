@@ -68,21 +68,12 @@ export default function CameraPage() {
             isProcessing.current = false;
         };
 
-        const handleSaveAndExit = async () => {
+        const handleSaveAndExit = () => {
             setStatus("Success!");
-            try {
-                await fetch('http://localhost:5000/api/stamps', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId: currentUserId, landmarkId }),
-                });
-                setTimeout(() => {
-                    navigate('/quiz');
-                }, 3000);
-            } catch (e) {
-                console.error("저장 중 오류:", e);
-                setIsSaving(false);
-            }
+            setIsSaving(true);
+            setTimeout(() => {
+                navigate(`/quiz?id=${landmarkId}&name=${encodeURIComponent(landmarkName || '')}`);
+            }, 3000);
         };
 
         const startCamera = async () => {
