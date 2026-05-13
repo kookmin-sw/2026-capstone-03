@@ -133,20 +133,43 @@ export default function CameraPage() {
 
             {/* 비디오 영역 */}
             <div style={{ position: 'relative', width: '100%', maxWidth: '500px', margin: '0 auto' }}>
+                
+                {/* 1. 실제 카메라 화면 또는 캡처된 이미지 (이게 꼭 있어야 합니다!) */}
                 {capturedImage ? (
                     <img src={capturedImage} style={{ width: '100%', borderRadius: '15px', display: 'block' }} alt="Result" />
                 ) : (
                     <video ref={videoRef} autoPlay playsInline style={{ width: '100%', borderRadius: '15px', display: 'block' }} />
                 )}
-                <canvas ref={canvasRef} width="360" height="480" style={{ display: 'none' }} />
-                {/*가이드라인*/}
+
+                {/* 2. 가이드라인 (카메라가 켜져 있을 때만 비디오 위에 겹쳐서 보여줌) */}
                 {!capturedImage && (
                     <div style={{
-                        position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-                        width: '70%', height: '70%', border: '2px dashed rgba(255,255,255,0.5)',
-                        borderRadius: '10px', pointerEvents: 'none'
-                    }}></div>
+                        position: 'absolute', top: '50%', left: '50%', 
+                        transform: 'translate(-50%, -50%)',
+                        width: '70%', height: '70%', // 가이드라인 크기
+                        
+                        border: '2px dashed rgba(255, 255, 255, 0.7)', // 0.7은 약간 투명하게, 취향껏 조절 가능
+                        borderRadius: '10px', 
+                        
+                        pointerEvents: 'none',
+                        overflow: 'hidden', // 이미지가 테두리를 넘지 않게 함
+                        zIndex: 5
+                    }}>
+                        <img 
+                            src={`/assets/guide_overlay.png`} 
+                            alt="가이드 라인"
+                            style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover', 
+                                opacity: 0.4, 
+                            }}
+                        />
+                    </div>
                 )}
+
+                {/* 보이지 않는 캔버스 (데이터 전송용) */}
+                <canvas ref={canvasRef} width="360" height="480" style={{ display: 'none' }} />
             </div>
 
             {/* 하단 버튼 */}
