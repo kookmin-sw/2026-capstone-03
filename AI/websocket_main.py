@@ -2,7 +2,7 @@ import asyncio, json, base64, websockets, torch, io, os, time
 from PIL import Image
 
 import torchvision.transforms as T
-from models.wrn import *
+from modeltest_v2.models.wrn import *
 from huggingface_hub import hf_hub_download
 REPO_ID = "SoftwareJun/wrn-cifar-100-sam"
 FILENAME = "ckpt.pth" 
@@ -39,7 +39,7 @@ class PersistentMatcher:
 
         base_dir = os.path.dirname(os.path.abspath(__file__))
         self.img_dir = os.path.join(base_dir, "img") 
-        self.emb_path = os.path.join(self.img_dir, "target_emb.pt")
+        self.emb_path = os.path.join(self.img_dir, "tar1.pt")
         self.target_emb = torch.load(self.emb_path, map_location=self.device)
         self.match_threshold = 0.70
 
