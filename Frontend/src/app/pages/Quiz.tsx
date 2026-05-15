@@ -65,7 +65,7 @@ export function Quiz() {
 
     // 스탬프 찍는 로직 위치 변경
     const handleBackWithStamp = async () => {
-        if (isCorrect && landmarkId) {
+        if (landmarkId) {
             try {
                 const token = localStorage.getItem('token'); 
                 
@@ -75,7 +75,10 @@ export function Quiz() {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify({ landmarkId }) 
+                    body: JSON.stringify({ 
+                        landmarkId: landmarkId,
+                        stampCollected: true 
+                    }) 
                 });
             } catch (error) {
                 console.error('스탬프 저장 중 오류 발생:', error);
