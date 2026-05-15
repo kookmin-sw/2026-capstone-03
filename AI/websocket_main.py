@@ -2,7 +2,7 @@ import asyncio, json, base64, websockets, torch, io, os, time
 from PIL import Image
 
 import torchvision.transforms as T
-from modeltest_v2.models.wrn import *
+from models.wrn import *
 from huggingface_hub import hf_hub_download
 REPO_ID = "SoftwareJun/wrn-cifar-100-sam"
 FILENAME = "ckpt.pth" 
