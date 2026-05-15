@@ -3,7 +3,7 @@ import csv
 import torch
 import torchvision.transforms as T
 from PIL import Image
-from modeltest_v2.models.wrn import *
+from wrn import *
 from huggingface_hub import hf_hub_download
 
 # Configuration
