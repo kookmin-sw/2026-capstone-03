@@ -41,7 +41,7 @@ class PersistentMatcher:
         self.img_dir = os.path.join(base_dir, "img") 
         self.emb_path = os.path.join(self.img_dir, "tar1.pt")
         self.target_emb = torch.load(self.emb_path, map_location=self.device)
-        self.match_threshold = 0.70
+        self.match_threshold = 0.80
 
         print(f"[{time.strftime('%H:%M:%S')}] 서버 준비 완료")
 
