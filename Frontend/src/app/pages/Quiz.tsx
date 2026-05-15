@@ -12,6 +12,7 @@ type QuizItem = {
 export function Quiz() {
     const params = useMemo(() => new URLSearchParams(window.location.search), []);
 
+    const landmarkId = params.get('id');
     const landmarkName = params.get('name') || '문화재';
     const region = params.get('region') || '지역 정보 없음';
 
@@ -62,8 +63,25 @@ export function Quiz() {
         setSubmitted(true);
     };
 
-    const handleBackWithStamp = () => {
-        window.location.href = `/?stampEarned=1&name=${encodeURIComponent(landmarkName)}`;
+    // 스탬프 찍는 로직 위치 변경
+    const handleBackWithStamp = async () => {
+        if (isCorrect && landmarkId) {
+            try {
+                const token = localStorage.getItem('token'); 
+                
+                await fetch('http://localhost:5000/api/stamps', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ landmarkId }) 
+                });
+            } catch (error) {
+                console.error('스탬프 저장 중 오류 발생:', error);
+            }
+        }
+        window.location.href = `/`; 
     };
 
 
