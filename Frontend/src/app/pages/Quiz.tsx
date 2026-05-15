@@ -65,26 +65,35 @@ export function Quiz() {
 
     // 스탬프 찍는 로직 위치 변경
     const handleBackWithStamp = async () => {
-        if (landmarkId) {
-            try {
-                const token = localStorage.getItem('token'); 
-                
-                await fetch('http://localhost:5000/api/stamps', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ 
-                        landmarkId: landmarkId,
-                        stampCollected: true 
-                    }) 
-                });
-            } catch (error) {
-                console.error('스탬프 저장 중 오류 발생:', error);
-            }
+        if (!landmarkId) {
+            window.location.href = `/`; 
+            return;
         }
-        window.location.href = `/`; 
+
+        try {
+            // JWT 토큰 불러오기
+            const token = localStorage.getItem('token'); 
+            
+            const response = await fetch('http://localhost:5000/api/stamps', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ landmarkId }) 
+            });
+
+            if (response.ok) {
+                alert(`${landmarkName} 스탬프 획득!`);
+            } else {
+                alert('스탬프 저장 실패.');
+            }
+        } catch (error) {
+            console.error('스탬프 저장 중 오류 발생:', error);
+            alert('네트워크 오류가 발생했습니다.');
+        } finally {
+            window.location.href = `/`; 
+        }
     };
 
 

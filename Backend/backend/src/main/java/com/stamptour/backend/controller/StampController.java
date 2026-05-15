@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -20,8 +21,10 @@ public class StampController {
     private final StampRepository stampRepository;
 
     @PostMapping
-    public ResponseEntity<Map<String, String>> saveStamp(@RequestBody Map<String, String> body) {
-        String userId = body.get("userId");
+    public ResponseEntity<Map<String, String>> saveStamp(
+        @AuthenticationPrincipal String userId,
+        @RequestBody Map<String, String> body) {
+
         String landmarkId = body.get("landmarkId");
 
         Map<String, String> response = new HashMap<>();
