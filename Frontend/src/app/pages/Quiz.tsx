@@ -65,7 +65,7 @@ export function Quiz() {
 
     // 스탬프 찍는 로직 위치 변경
     const handleBackWithStamp = async () => {
-        if (isCorrect && landmarkId) {
+        if (landmarkId) {
             try {
                 const token = localStorage.getItem('token'); 
                 
