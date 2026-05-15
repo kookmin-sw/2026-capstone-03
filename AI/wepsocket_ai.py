@@ -5,7 +5,7 @@ from transformers import CLIPProcessor, CLIPModel
 class PersistentMatcher:
     def __init__(self):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        print(f"[{time.strftime('%H:%M:%S')}] 모델 로드 중)")
+        print(f"[{time.strftime('%H:%M:%S')}] 모델 로드 중")
 
         self.model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(self.device)
         self.processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
@@ -49,8 +49,20 @@ class PersistentMatcher:
                         pil_img = Image.open(io.BytesIO(img_data)).convert("RGB")
                         
                         inputs = self.processor(images=pil_img, return_tensors="pt").to(self.device)
+                        
                         with torch.no_grad():
                             features = self.model.get_image_features(**inputs)
+                            
+                            # 반환값이 순수 텐서가 아닌 'BaseModelOutputWithPooling' 같은 객체일 경우
+                            if not isinstance(features, torch.Tensor):
+                                if hasattr(features, 'image_embeds') and features.image_embeds is not None:
+                                    features = features.image_embeds
+                                elif hasattr(features, 'pooler_output'):
+                                    features = features.pooler_output
+                                else:
+                                    # 만약의 경우를 대비한 Fallback (첫 번째 요소 추출)
+                                    features = features[0]
+                            
                             features = features / features.norm(dim=-1, keepdim=True)
                         
                         score = (features @ self.target_emb.T).item()
@@ -65,6 +77,7 @@ class PersistentMatcher:
                         
                         print(f"[{time.strftime('%H:%M:%S')}] Score: {score:.4f} | Match: {is_match}")
                         await asyncio.sleep(0.5)
+                        
             except Exception as e:
                 print(f"[{time.strftime('%H:%M:%S')}] 연결 오류: {e} 재시도중")
                 await asyncio.sleep(5)
