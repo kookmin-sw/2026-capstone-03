@@ -6,7 +6,6 @@ from PIL import Image
 from wrn import *
 from huggingface_hub import hf_hub_download
 
-# Configuration
 REPO_ID = "SoftwareJun/wrn-cifar-100-sam"
 FILENAME = "ckpt.pth" 
 
@@ -24,19 +23,22 @@ class Identity(torch.nn.Module):
         return x
 
 
-CSV_PATH = "./ref_img.csv"
-EMBEDDING_DIR = "./reference_embeddings"
+IMG_PATH = "../public/img"
+EMBEDDING_DIR = "../public/emb"
 
 
-def load_data(csv_path):
+def get_image_paths(image_dir):
+    valid_extensions = (".jpg")
     data_list = []
     id_list = []
 
-    with open(csv_path, newline="", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            data_list.append(row["img"])   # make sure column name matches CSV
-            id_list.append(row["ID"])
+    for file_name in os.listdir(image_dir):
+        if file_name.lower().endswith(valid_extensions):
+            full_path = os.path.join(image_dir, file_name)
+            data_list.append(full_path)
+
+            name_without_ext = os.path.splitext(file_name)[0]
+            id_list.append(name_without_ext)
 
     return data_list, id_list
 
@@ -44,13 +46,9 @@ def load_data(csv_path):
 def save_embedding(emb_dir, img_id, embedding):
     os.makedirs(emb_dir, exist_ok=True)
 
-    if not torch.is_tensor(embedding):
-        print(f"❌ Error: {img_id} is not a tensor → {type(embedding)}")
-        return
-
     save_path = os.path.join(emb_dir, f"{img_id}.pt")
-    torch.save(embedding.cpu(), save_path)   # move to cpu before saving
-    print(f"✅ Saved → {save_path}")
+    torch.save(embedding.cpu(), save_path)  
+    print(f"Saved → {save_path}")
 
 
 def forward(model, img):
@@ -65,32 +63,31 @@ def forward(model, img):
 
 
 def main():
-
     model = wideresnet()
     model_path = hf_hub_download(repo_id=REPO_ID, filename=FILENAME)
     checkpoint = torch.load(model_path, map_location=device)
     state_dict = checkpoint['net']
 
-    # Strip the 'module.' prefix added by DataParallel
     state_dict = {k.replace('module.', ''): v for k, v in state_dict.items()}
-
     model.load_state_dict(state_dict)  
     model.fc = Identity()
     model.to(device)
     model.eval()
 
-    data_list, id_list = load_data(CSV_PATH)
+    data_list, id_list = get_image_paths(IMG_PATH)
 
     for img_path, img_id in zip(data_list, id_list):
         with torch.no_grad():
-            embedding = forward(model, img_path)
+            img = Image.open(img_path).convert("RGB")
+            embedding = forward(model, img)
+
 
         if embedding is None:
             continue
 
         save_embedding(EMBEDDING_DIR, img_id, embedding)
 
-    print("\n🎉 Done.")
+    print("\n 작업이 완료되었습니다.")
 
 
 if __name__ == "__main__":

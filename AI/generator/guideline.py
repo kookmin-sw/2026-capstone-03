@@ -9,8 +9,8 @@ from rembg import remove
 # Config
 # ===================================
 
-IMG_DIR = "img"
-GUIDELINE_DIR = "guidelines"
+IMG_DIR = "../public/img"
+GUIDELINE_DIR = "../public/guideline"
 JSON_DIR = "jsons"
 
 CANVAS_SIZE = 1024

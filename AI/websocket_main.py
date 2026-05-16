@@ -4,6 +4,7 @@ from PIL import Image
 import torchvision.transforms as T
 from modeltest_v2.models.wrn import *
 from huggingface_hub import hf_hub_download
+
 REPO_ID = "SoftwareJun/wrn-cifar-100-sam"
 FILENAME = "ckpt.pth" 
 
@@ -22,14 +23,13 @@ class Identity(torch.nn.Module):
 class PersistentMatcher:
     def __init__(self):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        print(f"[{time.strftime('%H:%M:%S')}] 모델 로드 중)")
+        print(f"[{time.strftime('%H:%M:%S')}] 모델 로드 중...)")
 
+        # 1. 모델 초기화
         self.model = wideresnet()
         model_path = hf_hub_download(repo_id=REPO_ID, filename=FILENAME)
         checkpoint = torch.load(model_path, map_location=self.device)
         state_dict = checkpoint['net']
-
-        # Strip the 'module.' prefix added by DataParallel
         state_dict = {k.replace('module.', ''): v for k, v in state_dict.items()}
 
         self.model.load_state_dict(state_dict)  
@@ -37,13 +37,32 @@ class PersistentMatcher:
         self.model.to(self.device)
         self.model.eval()
 
+        # 2. 📂 폴더 내 모든 .pt 파일 메모리에 미리 로드하기 (캐싱)
         base_dir = os.path.dirname(os.path.abspath(__file__))
-        self.img_dir = os.path.join(base_dir, "img") 
-        self.emb_path = os.path.join(self.img_dir, "tar1.pt")
-        self.target_emb = torch.load(self.emb_path, map_location=self.device)
-        self.match_threshold = 0.80
+        self.emb_dir = os.path.abspath(os.path.join(base_dir, "./public/emb")) # 저장된 부모폴더/public/emb 지정
+        
+        self.embedding_dict = {} # 임베딩을 담아둘 메모리 사전
+        self.load_all_embeddings() # 프로그램 시작 시 실행
 
+        self.match_threshold = 0.80
         print(f"[{time.strftime('%H:%M:%S')}] 서버 준비 완료")
+
+    def load_all_embeddings(self):
+        """emb 폴더 안의 모든 .pt 파일을 읽어 ID별로 메모리에 저장합니다."""
+        if not os.path.exists(self.emb_dir):
+            print(f"⚠️ 경고: 임베딩 폴더가 없습니다 -> {self.emb_dir}")
+            return
+
+        print(f"📦 [{time.strftime('%H:%M:%S')}] 임베딩 파일들을 메모리에 로드하는 중...")
+        for file_name in os.listdir(self.emb_dir):
+            if file_name.endswith(".pt"):
+                user_id = os.path.splitext(file_name)[0] # 파일명에서 확장자 제외 (예: 'junhee.pt' -> 'junhee')
+                file_path = os.path.join(self.emb_dir, file_name)
+                
+                # 메모리(GPU 혹은 CPU)에 미리 올려둠
+                self.embedding_dict[user_id] = torch.load(file_path, map_location=self.device)
+        
+        print(f"✅ 총 {len(self.embedding_dict)}개의 타겟 임베딩 로드 완료 (등록된 ID: {list(self.embedding_dict.keys())})")
 
     async def run_forever(self):
         uri = "ws://localhost:5000/ws/python"
@@ -59,9 +78,8 @@ class PersistentMatcher:
                     }))
                     
                     while True:
-                        # 큐에 쌓인 메시지 중 가장 최신 것만 가져옴
                         message = await websocket.recv()
-                        
+
                         try:
                             while True:
                                 message = await asyncio.wait_for(websocket.recv(), timeout=0.01)
@@ -70,32 +88,36 @@ class PersistentMatcher:
 
                         data = json.loads(message)
                         if 'image' not in data: continue
+
+                        current_id = data.get('id', None) 
                         
-                        # 영상 분석
+                        target_emb = self.embedding_dict[current_id]
+
                         img_data = base64.b64decode(data['image'].split(',')[1])
                         pil_img = Image.open(io.BytesIO(img_data)).convert("RGB")
                         
                         with torch.no_grad():
-                                crop_size = min(pil_img.size)  
-                                x = T.Compose([
-                                    T.CenterCrop(crop_size),
-                                    transform,
-                                ])(pil_img).unsqueeze(0).to(self.device)  
-                                features = self.model(x).squeeze(0)
-                                features = features / features.norm()
-                        
-                        score = (features @ self.target_emb).item()
+                            crop_size = min(pil_img.size)  
+                            x = T.Compose([
+                                T.CenterCrop(crop_size),
+                                transform,
+                            ])(pil_img).unsqueeze(0).to(self.device)  
+                            features = self.model(x).squeeze(0)
+                            features = features / features.norm()
+
+                        score = (features @ target_emb).item()
                         is_match = score > self.match_threshold
 
                         result = {
                             "score": float(score),
                             "status": "Holding" if is_match else "Searching", 
-                            "is_match": is_match
+                            "is_match": is_match,
+                            "id": current_id
                         }
                         await websocket.send(json.dumps(result))
                         
-                        print(f"[{time.strftime('%H:%M:%S')}] Score: {score:.4f} | Match: {is_match}")
-                        await asyncio.sleep(0.5)
+                        print(f"[{time.strftime('%H:%M:%S')}] ID: {current_id} | Score: {score:.4f} | Match: {is_match}")
+                        await asyncio.sleep(0.5) 
             except Exception as e:
                 print(f"[{time.strftime('%H:%M:%S')}] 연결 오류: {e} 재시도중")
                 await asyncio.sleep(5)

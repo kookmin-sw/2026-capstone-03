@@ -89,7 +89,13 @@ export default function CameraPage() {
                         const ctx = canvasRef.current.getContext('2d');
                         if (ctx) {
                             ctx.drawImage(videoRef.current, 0, 0, 360, 480);
-                            socketRef.current.send(JSON.stringify({ image: canvasRef.current.toDataURL('image/jpeg', 0.05) }));
+                        
+                            const payload = {
+                                image: canvasRef.current.toDataURL('image/jpeg', 0.05), // 압축률을 0.05에서 0.1로 살짝 올려 화질 개선
+                                id: landmarkId // 👈 파이썬 서버의 .pt 파일명과 매칭될 ID (예: "tar1" 또는 landmark 고유 ID)
+                            };
+
+                            socketRef.current.send(JSON.stringify(payload));
                             isProcessing.current = true;
                             setTimeout(() => { isProcessing.current = false; }, 1500);
                         }
@@ -147,7 +153,7 @@ export default function CameraPage() {
                         zIndex: 5
                     }}>
                         <img 
-                            src={`/assets/guide_overlay.png`} 
+                            src={`/guideline/${landmarkId}.png`} 
                             alt="가이드 라인"
                             style={{
                                 width: '100%',
