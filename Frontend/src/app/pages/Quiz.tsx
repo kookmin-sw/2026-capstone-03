@@ -1,9 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 type QuizItem = {
     id: number;
-    category: string;
-    title: string;
     question: string;
     answer: boolean;
     explanation: string;
@@ -16,46 +14,49 @@ export function Quiz() {
     const landmarkName = params.get('name') || '문화재';
     const region = params.get('region') || '지역 정보 없음';
 
-    const quiz = useMemo<QuizItem>(() => {
-        if (landmarkName.includes('수원화성')) {
-            return {
-                id: 1,
-                category: `${region} / 문화재 퀴즈 / ${landmarkName}`,
-                title: '수원화성은 조선시대에 축조된 대표적인 성곽 문화유산이다.',
-                question: 'O',
-                answer: true,
-                explanation:
-                    '수원화성은 정조 시대에 축조된 조선 후기의 대표적 성곽 문화유산으로, 역사적·건축학적 가치가 높습니다.',
-            };
-        }
+    const [quiz, setQuiz] = useState<QuizItem | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
-        if (landmarkName.includes('남산서울타워')) {
-            return {
-                id: 1,
-                category: `${region} / 랜드마크 퀴즈 / ${landmarkName}`,
-                title: '남산서울타워는 서울의 대표적인 전망 명소 중 하나이다.',
-                question: 'O',
-                answer: true,
-                explanation:
-                    '남산서울타워는 서울의 상징적인 랜드마크 중 하나로, 도심 전경을 한눈에 볼 수 있는 대표적인 전망 명소입니다.',
-            };
-        }
+    useEffect(() => {
+        if (!landmarkId) return;
 
-        return {
-            id: 1,
-            category: `${region} / 문화재 퀴즈 / ${landmarkName}`,
-            title: `${landmarkName}는 해당 지역과 관련된 대표 문화유산 또는 명소로 볼 수 있다.`,
-            question: 'O',
-            answer: true,
-            explanation:
-                `${landmarkName}는 지역의 역사·문화 맥락에서 중요한 의미를 가지는 장소로 볼 수 있습니다.`,
+        const fetchQuiz = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`http://localhost:5000/api/quizzes/${landmarkId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('퀴즈를 불러오는데 실패했습니다.');
+                }
+
+                const data = await response.json();
+                
+                // o,x를 true, false로 변환하여 저장
+                setQuiz({
+                    id: data.id,
+                    question: data.question,
+                    answer: data.answer === 'O',
+                    explanation: data.explanation
+                });
+
+            } catch (error) {
+                console.error('퀴즈 로딩 에러:', error);
+            } finally {
+                setIsLoading(false);
+            }
         };
-    }, [landmarkName, region]);
+        fetchQuiz();
+    }, [landmarkId]);
 
     const [selectedAnswer, setSelectedAnswer] = useState<boolean | null>(null);
     const [submitted, setSubmitted] = useState(false);
 
-    const isCorrect = submitted && selectedAnswer === quiz.answer;
+    const isCorrect = submitted && quiz && selectedAnswer === quiz.answer;
 
     const handleChoice = (value: boolean) => {
         if (submitted) return;
@@ -63,7 +64,6 @@ export function Quiz() {
         setSubmitted(true);
     };
 
-    // 스탬프 찍는 로직 위치 변경
     const handleBackWithStamp = async () => {
         if (!landmarkId) {
             window.location.href = `/`; 
@@ -71,7 +71,6 @@ export function Quiz() {
         }
 
         try {
-            // JWT 토큰 불러오기
             const token = localStorage.getItem('token'); 
             
             const response = await fetch('http://localhost:5000/api/stamps', {
@@ -85,6 +84,8 @@ export function Quiz() {
 
             if (response.ok) {
                 alert(`${landmarkName} 스탬프 획득!`);
+            } else if (response.status === 409) {
+                alert('이미 스탬프를 획득한 장소입니다!');
             } else {
                 alert('스탬프 저장 실패.');
             }
@@ -108,6 +109,30 @@ export function Quiz() {
             : 'border-red-400 bg-red-50'
         : 'border-pink-200 bg-white';
 
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-[#f8f8f8]">
+                <div className="text-center font-bold text-gray-500 animate-pulse">
+                    퀴즈를 불러오는 중입니다...
+                </div>
+            </div>
+        );
+    }
+
+    // 퀴즈 없을 때 
+    if (!quiz) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8f8f8] gap-4">
+                <div className="text-center font-bold text-red-500">
+                    해당 장소의 퀴즈를 찾을 수 없습니다.
+                </div>
+                <button onClick={() => window.location.href = '/'} className="px-4 py-2 bg-slate-900 text-white rounded-xl">
+                    지도로 돌아가기
+                </button>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-[#f8f8f8] px-4 py-6 pb-24">
             <div className="mx-auto max-w-2xl">
@@ -116,14 +141,14 @@ export function Quiz() {
                 >
                     <div className="flex items-start justify-between gap-4">
                         <div>
-                            <p className="text-[15px] text-slate-700">{quiz.category}</p>
+                            <p className="text-[15px] text-slate-700">{region} / 문화재 퀴즈 / {landmarkName}</p>
                         </div>
                     </div>
 
                     <div className="mt-6">
                         <p className="text-right text-[15px] text-slate-700">{landmarkName}</p>
                         <p className="mt-2 text-[18px] leading-9 text-slate-800">
-                            {quiz.title}
+                            {quiz.question}
                         </p>
                     </div>
 
