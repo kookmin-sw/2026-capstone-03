@@ -118,14 +118,6 @@ export function Quiz() {
                         <div>
                             <p className="text-[15px] text-slate-700">{quiz.category}</p>
                         </div>
-
-                        <button
-                            type="button"
-                            className="shrink-0 rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50"
-                            onClick={() => window.history.back()}
-                        >
-                            뒤로
-                        </button>
                     </div>
 
                     <div className="mt-6">
