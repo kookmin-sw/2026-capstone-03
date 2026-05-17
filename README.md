@@ -43,10 +43,10 @@
 
 | 사진 | 이름 | 역할 및 담당 | 연락처 및 SNS |
 | :---: | :---: | :--- | :--- |
-| <img src="[https://via.placeholder.com/100](https://via.placeholder.com/100)" width="100" height="100"/> | **문지환** | **Team Leader / Frontend**<br/>- 한 일 1<br/>- 한 일 2<br/>-  한 일 3| [GitHub](https://github.com/본인아이디)<br/>[Email](mailto:본인이메일@gmail.com) |
-| <img src="[https://via.placeholder.com/100](https://via.placeholder.com/100)" width="100" height="100"/> | **김효준** | **AI**<br/>- 한 일 1<br/>- 한 일 2<br/>-  한 일 3| [GitHub](https://github.com/)<br/>[Email](mailto:email@gmail.com) |
-| <img src="https://via.placeholder.com/100" width="100" height="100"/> | **박상윤** | **Backend / Data**<br/>- 한 일 1<br/>- 한 일 2<br/>-  한 일 3| [GitHub](https://github.com/)<br/>[Email](mailto:email@gmail.com) |
-| <img src="https://via.placeholder.com/100" width="100" height="100"/> | **윤준희** | **Backend / Data**<br/>- 한 일 1<br/>- 한 일 2<br/>-  한 일 3| [GitHub](https://github.com/)<br/>[Email](mailto:email@gmail.com) |
+| <img src="https://avatars.githubusercontent.com/u/85243418?v=4" width="100" height="100"/> | **문지환** | **Team Leader / Frontend**<br/>- 한 일 1<br/>- 한 일 2<br/>-  한 일 3| [GitHub](https://github.com/munjihwan020627)<br/>[Email](mailto:aa020627@kookmin.ac.kr) |
+| <img src="https://avatars.githubusercontent.com/u/145461925?v=4" width="100" height="100"/> | **김효준** | **AI**<br/>- 한 일 1<br/>- 한 일 2<br/>-  한 일 3| [GitHub](https://github.com/SoftwareJun)<br/>[Email](mailto:junjungdong@kookmin.ac.kr) |
+| <img src="https://avatars.githubusercontent.com/u/85819413?v=4" width="100" height="100"/> | **박상윤** | **Backend / Data**<br/>- 한 일 1<br/>- 한 일 2<br/>-  한 일 3| [GitHub](https://github.com/Park-Sangyun)<br/>[Email](mailto:a5653a@kookmin.ac.kr) |
+| <img src="https://avatars.githubusercontent.com/u/82225260?v=4" width="100" height="100"/> | **윤준희** | **Backend / Data**<br/>- 한 일 1<br/>- 한 일 2<br/>-t  한 일 3| [GitHub](https://github.com/yjunhee)<br/>[Email](mailto:junhee1129@kookmin.ac.kr) |
 
 <br/>
 
