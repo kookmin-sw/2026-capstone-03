@@ -1,9 +1,8 @@
 <div align="center">
-  <h1>🗺️ Cultour (관광지 스탬프 투어)</h1>
+  <h1>Cultour (관광지 스탬프 투어)</h1>
   <p><strong>주변 문화재를 방문하고, 스탬프를 모으며 즐기는 역사 탐방 웹 서비스</strong></p>
 
   <a href="https://github.com/kookmin-sw/2026-capstone-03" target="_blank"><img src="https://img.shields.io/badge/GitHub-Repository-black?style=for-the-badge&logo=github"></a>
-  <a href="https://github.com/kookmin-sw/2026-capstone-03/wiki" target="_blank"><img src="https://img.shields.io/badge/Wiki-API%20Docs-orange?style=for-the-badge&logo=wikipedia"></a>
   <br/><br/>
 </div>
 
@@ -27,14 +26,14 @@
 ## 시연 영상 및 발표 자료
 
 <div align="center">
-  <h3>🎥 시연 영상 (YouTube)</h3>
+  <h3>시연 영상 (YouTube)</h3>
   <a href="https://youtube.com/여기에링크">
     <img src="https://img.shields.io/badge/YouTube-시연_영상_보러가기-FF0000?style=for-the-badge&logo=youtube" alt="Youtube">
   </a>
 </div>
 
 <div align="center">
-  <h3>📊 발표 자료 (PPT)</h3>
+  <h3>발표 자료 (PPT)</h3>
   <a href="https://여기에PPT링크">
     <img src="https://img.shields.io/badge/PDF-발표_자료_다운로드-E34F26?style=for-the-badge&logo=pdf" alt="PPT">
   </a>
@@ -44,16 +43,10 @@
 
 ## 주요 기능
 
-| 위치 기반 인터랙티브 지도 | AI 실시간 카메라 인증 |
-|:---:|:---:|
-| <img src="./assets/Map.png" width="100%"> | <img src="./assets/AI_Camera.png" width="100%"> |
-| **카카오 맵 API**를 활용하여 내 주변 문화재와 획득 가능한 스탬프의 위치를 직관적으로 보여줍니다. | 랜드마크 앞에서 카메라를 켜면 **AI 객체 인식**을 통해 실제 방문 여부를 실시간으로 인증합니다. |
-
-| 역사 퀴즈 시스템 | 리워드 교환소 |
-|:---:|:---:|
-| <img src="./assets/Quiz.png" width="100%"> | <img src="./assets/Reward.png" width="100%"> |
-| 인증을 마치면 해당 문화재와 관련된 **O/X 퀴즈**가 출제되어 역사적 지식을 자연스럽게 습득합니다. | 지역별 수집률을 한눈에 확인하고, 모은 스탬프로 상품권, 굿즈 등 **실제 리워드로 교환**합니다. |
-
+| 위치 기반 인터랙티브 지도 | AI 실시간 카메라 인증 | 역사 퀴즈 시스템 | 리워드 교환소 |
+|:---:|:---:|:---:|:---:|
+| <img src="./assets/Map.png" width="100%"> | <img src="./assets/AI_Camera.png" width="100%"> | <img src="./assets/Quiz.png" width="100%"> | <img src="./assets/Reward.png" width="100%"> |
+| **카카오 맵 API**를 활용하여 내 주변 문화재와 획득 가능한 스탬프의 위치를 직관적으로 보여줍니다. | 랜드마크 앞에서 카메라를 켜면 **AI 객체 인식**을 통해 실제 방문 여부를 실시간으로 인증합니다. | 인증을 마치면 해당 문화재와 관련된 **O/X 퀴즈**가 출제되어 역사적 지식을 자연스럽게 습득합니다. | 지역별 수집률을 한눈에 확인하고, 모은 스탬프로 상품권, 굿즈 등 **실제 리워드로 교환**합니다. |
 <br/>
 
 ## 시스템 아키텍처
@@ -75,7 +68,6 @@
 <p>
   <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB">
   <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white">
-  <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white">
 </p>
 
 ### Backend
@@ -83,13 +75,16 @@
   <img src="https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white">
   <img src="https://img.shields.io/badge/Spring_Security-6DB33F?style=for-the-badge&logo=springsecurity&logoColor=white">
   <img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white">
+</p>
+
+### AI
+<p>
   <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white">
 </p>
 
 ### Infra & Tools
 <p>
   <img src="https://img.shields.io/badge/Amazon_AWS-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white">
-  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white">
   <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white">
 </p>
 

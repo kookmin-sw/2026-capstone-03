@@ -1,4 +1,4 @@
-# 🗺️ 관광지 스탬프 투어 (Cultural Heritage Stamp Tour)
+# 관광지 스탬프 투어 - CULTOUR
 
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-팀%20페이지%20바로가기-blue?style=for-the-badge&logo=github)](https://kookmin-sw.github.io/2026-capstone-03/)
 [![Wiki](https://img.shields.io/badge/Wiki-API%20및%20상세문서-orange?style=for-the-badge&logo=wikipedia)](https://github.com/kookmin-sw/2026-capstone-03/wiki)
@@ -9,17 +9,17 @@
 
 <br/>
 
-## 1. 💡 프로젝트 소개
+## 1. 프로젝트 소개
 
 **관광지 스탬프 투어**는 사용자가 직접 랜드마크 및 문화재를 방문하여 스탬프를 획득하고, 달성률에 따라 보상을 받을 수 있는 서비스입니다. 
 
-### 🌟 주요 기능 (Preview)
+### 주요 기능 (Preview)
 - **카메라/AI 인증:** 해당 장소에서 카메라를 켜면 AI가 객체를 인식하여 방문을 인증합니다.
 - **스탬프 & 퀴즈 투어:** 장소에 얽힌 역사 퀴즈를 풀고 스탬프를 획득할 수 있습니다.
 - **리워드 시스템 (선물 교환소):** 모은 스탬프를 활용해 카페 쿠폰, 굿즈 등으로 교환할 수 있습니다.
 - **내 프로필 & 리더보드:** 실시간으로 다른 유저와 점수 경쟁을 하고, 도전과제를 달성할 수 있습니다.
 
-### 🛠️ 기술 스택 (Tech Stack)
+### 기술 스택 (Tech Stack)
 - **Frontend:** React, TypeScript, Tailwind CSS, Kakao Maps API
 - **Backend:** Spring Boot, Spring Security (JWT), OAuth2 (Google, Kakao, Naver)
 - **Database:** MySQL, Spring Data JPA
@@ -27,7 +27,7 @@
 
 <br/>
 
-## 2. 🎥 소개 영상
+## 2. 소개 영상
 
 프로젝트의 실제 동작 화면과 주요 기능을 담은 시연 영상입니다.
 
@@ -39,7 +39,7 @@
 
 <br/>
 
-## 3. 👥 팀 소개
+## 3. 팀 소개
 
 | 사진 | 이름 | 역할 및 담당 | 연락처 및 SNS |
 | :---: | :---: | :--- | :--- |
@@ -90,7 +90,3 @@ npm run dev
 * 프론트엔드가 `http://localhost:5173` 에서 실행됩니다.
 
 <br/>
-
-## 5. 📚 기타 (Documentation)
-
-- 내용이 긴 상세 API 명세서, DB ERD, 구조도 등은 [프로젝트 Wiki](https://github.com/kookmin-sw/2026-capstone-03/wiki) 페이지에 상세하게 정리되어 있습니다.
