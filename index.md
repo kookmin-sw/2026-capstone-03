@@ -1,10 +1,9 @@
 <div align="center">
   <h1>🗺️ Cultour (관광지 스탬프 투어)</h1>
   <p><strong>주변 문화재를 방문하고, 스탬프를 모으며 즐기는 역사 탐방 웹 서비스</strong></p>
-  
-  <a href="[https://stamptour.xyz](https://stamptour.xyz)" target="_blank"><img src="[https://img.shields.io/badge/Website-Live%20Demo-blue?style=for-the-badge&logo=googlechrome](https://img.shields.io/badge/Website-Live%20Demo-blue?style=for-the-badge&logo=googlechrome)"></a>
-  <a href="[https://github.com/kookmin-sw/2026-capstone-03](https://github.com/kookmin-sw/2026-capstone-03)" target="_blank"><img src="[https://img.shields.io/badge/GitHub-Repository-black?style=for-the-badge&logo=github](https://img.shields.io/badge/GitHub-Repository-black?style=for-the-badge&logo=github)"></a>
-  <a href="[https://github.com/kookmin-sw/2026-capstone-03/wiki](https://github.com/kookmin-sw/2026-capstone-03/wiki)" target="_blank"><img src="[https://img.shields.io/badge/Wiki-API%20Docs-orange?style=for-the-badge&logo=wikipedia](https://img.shields.io/badge/Wiki-API%20Docs-orange?style=for-the-badge&logo=wikipedia)"></a>
+
+  <a href="https://github.com/kookmin-sw/2026-capstone-03" target="_blank"><img src="https://img.shields.io/badge/GitHub-Repository-black?style=for-the-badge&logo=github"></a>
+  <a href="https://github.com/kookmin-sw/2026-capstone-03/wiki" target="_blank"><img src="https://img.shields.io/badge/Wiki-API%20Docs-orange?style=for-the-badge&logo=wikipedia"></a>
   <br/><br/>
 </div>
 
@@ -29,15 +28,15 @@
 
 <div align="center">
   <h3>🎥 시연 영상 (YouTube)</h3>
-  <a href="[https://youtube.com/여기에링크](https://youtube.com/여기에링크)">
-    <img src="[https://img.shields.io/badge/YouTube-시연_영상_보러가기-FF0000?style=for-the-badge&logo=youtube](https://img.shields.io/badge/YouTube-시연_영상_보러가기-FF0000?style=for-the-badge&logo=youtube)" alt="Youtube">
+  <a href="https://youtube.com/여기에링크">
+    <img src="https://img.shields.io/badge/YouTube-시연_영상_보러가기-FF0000?style=for-the-badge&logo=youtube" alt="Youtube">
   </a>
 </div>
 
 <div align="center">
   <h3>📊 발표 자료 (PPT)</h3>
   <a href="https://여기에PPT링크">
-    <img src="[https://img.shields.io/badge/PDF-발표_자료_다운로드-E34F26?style=for-the-badge&logo=pdf](https://img.shields.io/badge/PDF-발표_자료_다운로드-E34F26?style=for-the-badge&logo=pdf)" alt="PPT">
+    <img src="https://img.shields.io/badge/PDF-발표_자료_다운로드-E34F26?style=for-the-badge&logo=pdf" alt="PPT">
   </a>
 </div>
 
@@ -60,7 +59,7 @@
 ## 시스템 아키텍처
 
 <div align="center">
-  <img src="[https://via.placeholder.com/800x450?text=System+Architecture](https://via.placeholder.com/800x450?text=System+Architecture)" width="90%" alt="시스템 아키텍처">
+  <img src="" width="90%" alt="시스템 아키텍처">
 </div>
 
 * **Client:** React (TypeScript) 기반의 반응형 PWA 구축
@@ -74,24 +73,24 @@
 
 ### Frontend
 <p>
-  <img src="[https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)">
-  <img src="[https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)">
-  <img src="[https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)">
+  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB">
+  <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white">
+  <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white">
 </p>
 
 ### Backend
 <p>
-  <img src="[https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white](https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)">
-  <img src="[https://img.shields.io/badge/Spring_Security-6DB33F?style=for-the-badge&logo=springsecurity&logoColor=white](https://img.shields.io/badge/Spring_Security-6DB33F?style=for-the-badge&logo=springsecurity&logoColor=white)">
-  <img src="[https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)">
-  <img src="[https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)">
+  <img src="https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white">
+  <img src="https://img.shields.io/badge/Spring_Security-6DB33F?style=for-the-badge&logo=springsecurity&logoColor=white">
+  <img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white">
+  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white">
 </p>
 
 ### Infra & Tools
 <p>
-  <img src="[https://img.shields.io/badge/Amazon_AWS-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white](https://img.shields.io/badge/Amazon_AWS-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white)">
-  <img src="[https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)">
-  <img src="[https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)">
+  <img src="https://img.shields.io/badge/Amazon_AWS-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white">
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white">
+  <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white">
 </p>
 
 <br/>
