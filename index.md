@@ -59,7 +59,7 @@
 ## 시스템 아키텍처
 
 <div align="center">
-  <img src="" width="90%" alt="시스템 아키텍처">
+  <img src="./assets/architecture.png" width="90%" alt="시스템 아키텍처">
 </div>
 
 * **Client:** React (TypeScript) 기반의 반응형 PWA 구축
@@ -69,7 +69,7 @@
 
 <br/>
 
-## 🛠️ 6. 기술 스택 (Tech Stack)
+## 기술 스택
 
 ### Frontend
 <p>
