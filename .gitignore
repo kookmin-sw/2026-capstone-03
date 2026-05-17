@@ -5,7 +5,6 @@ Backend/node_modules/
 # 환경변수 파일 무시 (API 키 보호)
 .env
 Backend/.env
-Backend/backend/src/main/resources/application.template.properties
 
 # 🚀 에디터 설정 폴더 무시 (개인 설정 공유 방지)
 .idea/
