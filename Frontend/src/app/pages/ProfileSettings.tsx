@@ -1,4 +1,4 @@
-import { useEffect, useState, ChangeEvent, FormEvent } from "react";
+import { useEffect, useState, useMemo, ChangeEvent, FormEvent } from "react";
 import { useNavigate } from "react-router";
 import {
   ArrowLeft,
@@ -18,6 +18,13 @@ import { Label } from "../components/ui/label";
 import { Badge } from "../components/ui/badge";
 import { toast } from "sonner";
 
+interface Landmark {
+  id: string;
+  name: string;
+  region: string;
+  stampCollected: boolean;
+}
+
 export function ProfileSettings() {
   const navigate = useNavigate();
 
@@ -26,10 +33,12 @@ export function ProfileSettings() {
   const [previewImage, setPreviewImage] = useState<string>("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
+  const [landmarks, setLandmarks] = useState<Landmark[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   const [openSections, setOpenSections] = useState({
     myInfo: true,
     challenge: true,
-    leaderboard: true,
   });
 
   const toggleSection = (section: keyof typeof openSections) => {
@@ -50,7 +59,80 @@ export function ProfileSettings() {
     setName(user.name || "");
     setEmail(user.email || "");
     setPreviewImage(user.profileImage || "");
+    const fetchLandmarks = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`http://localhost:5000/api/landmarks`, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        setLandmarks(data);
+      } catch (error) {
+        console.error('데이터 로드 실패:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchLandmarks();
   }, [navigate]);
+
+  const challenges = useMemo(() => {
+    if (landmarks.length === 0) return [];
+
+    const collectedCount = landmarks.filter(l => l.stampCollected).length;
+
+    const isRegionComplete = (regionName: string) => {
+      const regionLandmarks = landmarks.filter(l => l.region === regionName);
+      if (regionLandmarks.length === 0) return false;
+      return regionLandmarks.every(l => l.stampCollected);
+    };
+
+    const hasVisited = (name: string) => {
+        return landmarks.find(l => l.name.includes(name))?.stampCollected || false;
+    }
+
+    const challengeList = [
+      { id: 1, title: "첫 스탬프 찍기", completed: collectedCount >= 1 },
+      { id: 2, title: "스탬프 10개 찍기", completed: collectedCount >= 10 },
+      { id: 3, title: "스탬프 50개 찍기", completed: collectedCount >= 50 },
+      { id: 4, title: "스탬프 전부 찍기", completed: collectedCount === landmarks.length && landmarks.length > 0 },
+      { id: 5, title: "강원도 전부 채우기", completed: isRegionComplete("강원도") },
+      { id: 6, title: "경기도 전부 채우기", completed: isRegionComplete("경기도") },
+      { id: 7, title: "경상남도 전부 채우기", completed: isRegionComplete("경상남도") },
+      { id: 8, title: "경상북도 전부 채우기", completed: isRegionComplete("경상북도") },
+      { id: 9, title: "광주광역시 전부 채우기", completed: isRegionComplete("광주광역시") },
+      { id: 10, title: "대구광역시 전부 채우기", completed: isRegionComplete("대구광역시") },
+      { id: 11, title: "대전광역시 전부 채우기", completed: isRegionComplete("대전광역시") },
+      { id: 12, title: "독도 찍기", completed: hasVisited("독도") },
+      { id: 13, title: "부산광역시 채우기", completed: isRegionComplete("부산광역시") },
+      { id: 14, title: "서울특별시 채우기", completed: isRegionComplete("서울특별시") },
+      { id: 15, title: "울릉도 찍기", completed: hasVisited("울릉도") },
+      { id: 16, title: "울산광역시 전부 채우기", completed: isRegionComplete("울산광역시") },
+      { id: 17, title: "인천광역시 전부 채우기", completed: isRegionComplete("인천광역시") },
+      { id: 18, title: "전라남도 전부 채우기", completed: isRegionComplete("전라남도") },
+      { id: 19, title: "전라북도 전부 채우기", completed: isRegionComplete("전라북도") },
+      { id: 20, title: "제주도 전부 채우기", completed: isRegionComplete("제주도") },
+      { id: 21, title: "충청남도 전부 채우기", completed: isRegionComplete("충청남도") },
+      { id: 22, title: "충청북도 전부 채우기", completed: isRegionComplete("충청북도") },
+    ];
+
+    //달성된것만 위로
+    challengeList.sort((a, b) => {
+      if (a.completed === b.completed) {
+        return a.id - b.id;
+      }
+      return a.completed ? -1 : 1;
+    });
+
+    return challengeList;
+  }, [landmarks]);
+
+  const completedCount = challenges.filter((c) => c.completed).length;
+  const challengeRate = challenges.length
+    ? Math.round((completedCount / challenges.length) * 100)
+    : 0;
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -83,26 +165,6 @@ export function ProfileSettings() {
     toast.success("프로필이 변경되었습니다.");
     navigate("/");
   };
-
-  // 더미 데이터
-  const challenges = [
-    { id: 1, title: "랜드마크 3곳 방문", completed: true },
-    { id: 2, title: "퀴즈 5회 풀기", completed: false },
-    { id: 3, title: "서울 지역 80% 달성", completed: false },
-    { id: 4, title: "첫 스탬프 획득", completed: true },
-  ];
-
-  const leaderboard = [
-    { id: 1, name: "문지환", score: 1200, rank: 1 },
-    { id: 2, name: "홍길동", score: 980, rank: 2 },
-    { id: 3, name: "김철수", score: 850, rank: 3 },
-    { id: 4, name: "박영희", score: 720, rank: 4 },
-  ];
-
-  const completedCount = challenges.filter((c) => c.completed).length;
-  const challengeRate = challenges.length
-    ? Math.round((completedCount / challenges.length) * 100)
-    : 0;
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
