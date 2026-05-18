@@ -1,7 +1,6 @@
 # 관광지 스탬프 투어 - CULTOUR
 
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-팀%20페이지%20바로가기-blue?style=for-the-badge&logo=github)](https://kookmin-sw.github.io/2026-capstone-03/)
-[![Wiki](https://img.shields.io/badge/Wiki-API%20및%20상세문서-orange?style=for-the-badge&logo=wikipedia)](https://github.com/kookmin-sw/2026-capstone-03/wiki)
 
 > **주변 문화재를 방문하고, 스탬프를 모으며 즐기는 역사 탐방 웹 서비스입니다.**
 
@@ -16,14 +15,14 @@
 ### 주요 기능 (Preview)
 - **카메라/AI 인증:** 해당 장소에서 카메라를 켜면 AI가 객체를 인식하여 방문을 인증합니다.
 - **스탬프 & 퀴즈 투어:** 장소에 얽힌 역사 퀴즈를 풀고 스탬프를 획득할 수 있습니다.
-- **리워드 시스템 (선물 교환소):** 모은 스탬프를 활용해 카페 쿠폰, 굿즈 등으로 교환할 수 있습니다.
-- **내 프로필 & 리더보드:** 실시간으로 다른 유저와 점수 경쟁을 하고, 도전과제를 달성할 수 있습니다.
+- **리워드 시스템 (선물 교환소):** 모은 스탬프를 활용해 상품으로 교환할 수 있습니다.
+- **내 프로필 & 도전과제:** 다양한 도전과제에 도전 할 수 있습니다.
 
 ### 기술 스택 (Tech Stack)
 - **Frontend:** React, TypeScript, Tailwind CSS, Kakao Maps API
-- **Backend:** Spring Boot, Spring Security (JWT), OAuth2 (Google, Kakao, Naver)
-- **Database:** MySQL, Spring Data JPA
-- **Infra/AI:** Python (WebSocket AI Server), AWS / Docker
+- **Backend:** Spring Boot, Spring Security (JWT), OAuth2 (Google, Kakao, Naver), Node.js
+- **Database:** MySQL
+- **AI:** Python
 
 <br/>
 
@@ -45,8 +44,8 @@
 | :---: | :---: | :--- | :--- |
 | <img src="https://avatars.githubusercontent.com/u/85243418?v=4" width="100" height="100"/> | **문지환** | **Team Leader / Frontend**<br/>- 한 일 1<br/>- 한 일 2<br/>-  한 일 3| [GitHub](https://github.com/munjihwan020627)<br/>[Email](mailto:aa020627@kookmin.ac.kr) |
 | <img src="https://avatars.githubusercontent.com/u/145461925?v=4" width="100" height="100"/> | **김효준** | **AI**<br/>- 한 일 1<br/>- 한 일 2<br/>-  한 일 3| [GitHub](https://github.com/SoftwareJun)<br/>[Email](mailto:junjungdong@kookmin.ac.kr) |
-| <img src="https://avatars.githubusercontent.com/u/85819413?v=4" width="100" height="100"/> | **박상윤** | **Backend / Data**<br/>- 한 일 1<br/>- 한 일 2<br/>-  한 일 3| [GitHub](https://github.com/Park-Sangyun)<br/>[Email](mailto:a5653a@kookmin.ac.kr) |
-| <img src="https://avatars.githubusercontent.com/u/82225260?v=4" width="100" height="100"/> | **윤준희** | **Backend / Data**<br/>- 한 일 1<br/>- 한 일 2<br/>-t  한 일 3| [GitHub](https://github.com/yjunhee)<br/>[Email](mailto:junhee1129@kookmin.ac.kr) |
+| <img src="https://avatars.githubusercontent.com/u/85819413?v=4" width="100" height="100"/> | **박상윤** | **Backend / Data**<br/>- DB구축<br/>- JWT보안 구축<br/>-  API설계| [GitHub](https://github.com/Park-Sangyun)<br/>[Email](mailto:a5653a@kookmin.ac.kr) |
+| <img src="https://avatars.githubusercontent.com/u/82225260?v=4" width="100" height="100"/> | **윤준희** | **Backend / Data**<br/>- DB구축<br/>- WEBSOCKET<br/>-t  API설계| [GitHub](https://github.com/yjunhee)<br/>[Email](mailto:junhee1129@kookmin.ac.kr) |
 
 <br/>
 
@@ -55,7 +54,7 @@
 본 프로젝트를 로컬 환경에서 실행하기 위한 설치 방법입니다.
 
 ### 사전 요구사항 (Prerequisites)
-- Java 21 이상
+- Java 26 
 - Node.js 18.x 이상
 - MySQL 8.0 이상
 
