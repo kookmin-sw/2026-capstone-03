@@ -42,10 +42,10 @@
 
 | 사진 | 이름 | 역할 및 담당 | 연락처 및 SNS |
 | :---: | :---: | :--- | :--- |
-| <img src="https://avatars.githubusercontent.com/u/85243418?v=4" width="100" height="100"/> | **문지환** | **Team Leader / Frontend**<br/>- 한 일 1<br/>- 한 일 2<br/>-  한 일 3| [GitHub](https://github.com/munjihwan020627)<br/>[Email](mailto:aa020627@kookmin.ac.kr) |
-| <img src="https://avatars.githubusercontent.com/u/145461925?v=4" width="100" height="100"/> | **김효준** | **AI**<br/>- 한 일 1<br/>- 한 일 2<br/>-  한 일 3| [GitHub](https://github.com/SoftwareJun)<br/>[Email](mailto:junjungdong@kookmin.ac.kr) |
-| <img src="https://avatars.githubusercontent.com/u/85819413?v=4" width="100" height="100"/> | **박상윤** | **Backend / Data**<br/>- DB구축<br/>- JWT보안 구축<br/>-  API설계| [GitHub](https://github.com/Park-Sangyun)<br/>[Email](mailto:a5653a@kookmin.ac.kr) |
-| <img src="https://avatars.githubusercontent.com/u/82225260?v=4" width="100" height="100"/> | **윤준희** | **Backend / Data**<br/>- DB구축<br/>- WEBSOCKET<br/>-t  API설계| [GitHub](https://github.com/yjunhee)<br/>[Email](mailto:junhee1129@kookmin.ac.kr) |
+| <img src="https://avatars.githubusercontent.com/u/85243418?v=4" width="100" height="100"/> | **문지환** | **Team Leader / Frontend**<br/>- 기획 및 프로젝트 총괄<br/>- React 기반 UI/UX 설계 및 개발<br/>-  맵 지도 연동 및 스탬프 비즈니스 로직 구현| [GitHub](https://github.com/munjihwan020627)<br/>[Email](mailto:aa020627@kookmin.ac.kr) |
+| <img src="https://avatars.githubusercontent.com/u/145461925?v=4" width="100" height="100"/> | **김효준** | **AI**<br/>- 실시간 웹캠 비디오 프레임 전송 로직 구현<br/>- 랜드마크 객체 인식 AI 모델 학습 및 최적화<br/>- | [GitHub](https://github.com/SoftwareJun)<br/>[Email](mailto:junjungdong@kookmin.ac.kr) |
+| <img src="https://avatars.githubusercontent.com/u/85819413?v=4" width="100" height="100"/> | **박상윤** | **Backend / Data**<br/>- Spring Boot 백엔드 API 설계 및 개발<br/>-  JWT 및 OAuth2 기반 보안 아키텍처 구현<br/>- DB 설계 및 구축| [GitHub](https://github.com/Park-Sangyun)<br/>[Email](mailto:a5653a@kookmin.ac.kr) |
+| <img src="https://avatars.githubusercontent.com/u/82225260?v=4" width="100" height="100"/> | **윤준희** | **Backend / Data**<br/>- Spring Boot 백엔드 API 설계 및 개발<br/>- WebSocket 통신 서버 구축<br/>-t 맵 지도 연동 및 스탬프 비즈니스 로직 구현| [GitHub](https://github.com/yjunhee)<br/>[Email](mailto:junhee1129@kookmin.ac.kr) |
 
 <br/>
 
