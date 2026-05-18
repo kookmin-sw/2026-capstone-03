@@ -88,11 +88,28 @@ export default function CameraPage() {
                     if (!isProcessing.current && !isSaving && socketRef.current?.readyState === WebSocket.OPEN && videoRef.current && canvasRef.current) {
                         const ctx = canvasRef.current.getContext('2d');
                         if (ctx) {
-                            ctx.drawImage(videoRef.current, 0, 0, 360, 480);
+                            // --- NEW PIPELINE CRUNCH LOGIC ---
+                            const videoWidth = videoRef.current.videoWidth;
+                            const videoHeight = videoRef.current.videoHeight;
+                            
+                            // Find the shorter edge for a clean center-square crop
+                            const cropSize = Math.min(videoWidth, videoHeight);
+                            
+                            // Calculate starting points to slice directly from the exact middle
+                            const sx = (videoWidth - cropSize) / 2;
+                            const sy = (videoHeight - cropSize) / 2;
+
+                            // Clear canvas and draw the center-cropped area stretched down into 256x256 space
+                            ctx.clearRect(0, 0, 256, 256);
+                            ctx.drawImage(
+                                videoRef.current, 
+                                sx, sy, cropSize, cropSize,  // Source Box (Square center from raw camera)
+                                0, 0, 256, 256               // Destination Box (Fixed 256x256 target)
+                            );
                         
                             const payload = {
-                                image: canvasRef.current.toDataURL('image/jpeg', 0.05), // 압축률을 0.05에서 0.1로 살짝 올려 화질 개선
-                                id: landmarkId // 👈 파이썬 서버의 .pt 파일명과 매칭될 ID (예: "tar1" 또는 landmark 고유 ID)
+                                image: canvasRef.current.toDataURL('image/jpeg', 0.1), // Compressed JPEG at 0.1 rate
+                                id: landmarkId 
                             };
 
                             socketRef.current.send(JSON.stringify(payload));
@@ -131,25 +148,25 @@ export default function CameraPage() {
             {/* 비디오 영역 */}
             <div style={{ position: 'relative', width: '100%', maxWidth: '500px', margin: '0 auto' }}>
                 
-                {/* 1. 실제 카메라 화면 또는 캡처된 이미지 (이게 꼭 있어야 합니다!) */}
+                {/* 1. 실제 카메라 화면 또는 캡처된 이미지 */}
                 {capturedImage ? (
                     <img src={capturedImage} style={{ width: '100%', borderRadius: '15px', display: 'block' }} alt="Result" />
                 ) : (
                     <video ref={videoRef} autoPlay playsInline style={{ width: '100%', borderRadius: '15px', display: 'block' }} />
                 )}
 
-                {/* 2. 가이드라인 (카메라가 켜져 있을 때만 비디오 위에 겹쳐서 보여줌) */}
+                {/* 2. 가이드라인 */}
                 {!capturedImage && (
                     <div style={{
                         position: 'absolute', top: '50%', left: '50%', 
                         transform: 'translate(-50%, -50%)',
-                        width: '70%', height: '70%', // 가이드라인 크기
+                        width: '70%', height: '70%', 
                         
-                        border: '2px dashed rgba(255, 255, 255, 0.7)', // 0.7은 약간 투명하게, 취향껏 조절 가능
+                        border: '2px dashed rgba(255, 255, 255, 0.7)', 
                         borderRadius: '10px', 
                         
                         pointerEvents: 'none',
-                        overflow: 'hidden', // 이미지가 테두리를 넘지 않게 함
+                        overflow: 'hidden', 
                         zIndex: 5
                     }}>
                         <img 
@@ -165,8 +182,8 @@ export default function CameraPage() {
                     </div>
                 )}
 
-                {/* 보이지 않는 캔버스 (데이터 전송용) */}
-                <canvas ref={canvasRef} width="360" height="480" style={{ display: 'none' }} />
+                {/* Fixed Data Canvas — Swapped hidden target dims from 360x480 to 256x256 */}
+                <canvas ref={canvasRef} width="256" height="256" style={{ display: 'none' }} />
             </div>
 
             {/* 하단 버튼 */}
